@@ -1,28 +1,28 @@
 {
-	"$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
-	"organizeImports": {
-		"enabled": true
-	},
-	"linter": {
-		"enabled": true,
-		"rules": {
-			"recommended": true,
-			"correctness": {
-				"noUnusedImports": "error",
-				"noUnusedVariables": "error"
-			},
-			"style": {
-				"useConsistentArrayType": "error",
-				"useForOf": "error"
-			},
-			"suspicious": {
-				"useAwait": "error"
-			},
-			"nursery": {
-				"noDuplicateJsonKeys": "error",
-				"noUnusedFunctionParameters": "error",
-				"useExplicitLengthCheck": "error"
-			}
-		}
-	}
+  "$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
+  "organizeImports": {
+    "enabled": true
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "correctness": {
+        "noUnusedImports": "error",
+        "noUnusedVariables": "error"
+      },
+      "style": {
+        "useConsistentArrayType": "error",
+        "useForOf": "error"
+      },
+      "suspicious": {
+        "useAwait": "error"
+      },
+      "nursery": {
+        "noDuplicateJsonKeys": "error",
+        "noUnusedFunctionParameters": "error",
+        "useExplicitLengthCheck": "error"
+      }
+    }
+  }
 }
