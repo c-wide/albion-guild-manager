@@ -1,7 +1,7 @@
 import pino from "pino";
 import { env } from "~/utils/env";
 
-const targets = [];
+const targets: pino.TransportTargetOptions[] = [];
 
 if (env.AXIOM_TOKEN) {
 	targets.push({

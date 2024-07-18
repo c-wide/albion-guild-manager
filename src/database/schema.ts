@@ -1,11 +1,4 @@
-import {
-	pgEnum,
-	pgTable,
-	text,
-	timestamp,
-	unique,
-	uuid,
-} from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 
 export const servers = pgTable("servers", {
 	id: uuid("id").defaultRandom().primaryKey(),
@@ -17,13 +10,6 @@ export const servers = pgTable("servers", {
 	leftAt: timestamp("left_at", { withTimezone: true }),
 });
 
-export const dataTypeEnum = pgEnum("data_type", [
-	"string",
-	"number",
-	"boolean",
-	"json",
-]);
-
 export const serverSettings = pgTable(
 	"server_settings",
 	{
@@ -33,7 +19,6 @@ export const serverSettings = pgTable(
 			.references(() => servers.id),
 		key: text("key").notNull(),
 		value: text("value").notNull(),
-		dataType: dataTypeEnum("data_type").notNull(),
 		createdAt: timestamp("created_at", { withTimezone: true })
 			.defaultNow()
 			.notNull(),
