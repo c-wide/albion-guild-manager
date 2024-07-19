@@ -21,8 +21,15 @@ export async function* eventFiles() {
 	const eventFiles = files.filter((file) => file.endsWith(".event.ts"));
 
 	for (const file of eventFiles) {
-		const event = await import(path.join(__dirname, "../features", file));
-		eventSchema.parse(event);
-		yield event;
+		const fileData = await import(path.join(__dirname, "../features", file));
+
+		const parsed = eventSchema.safeParse(fileData);
+		if (!parsed.success) {
+			console.error(`❌ Invalid event file [${file}]`);
+			console.error(parsed.error.issues);
+			throw new Error("Invalid event file");
+		}
+
+		yield fileData;
 	}
 }

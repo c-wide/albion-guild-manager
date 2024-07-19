@@ -32,8 +32,15 @@ export async function* commandFiles() {
 	const commandFiles = files.filter((file) => file.endsWith(".command.ts"));
 
 	for (const file of commandFiles) {
-		const command = await import(path.join(__dirname, "../features", file));
-		commandSchema.parse(command);
-		yield command;
+		const fileData = await import(path.join(__dirname, "../features", file));
+
+		const parsed = commandSchema.safeParse(fileData);
+		if (!parsed.success) {
+			console.error(`❌ Invalid command file [${file}]`);
+			console.error(parsed.error.issues);
+			throw new Error("Invalid command file");
+		}
+
+		yield fileData;
 	}
 }
