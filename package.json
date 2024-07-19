@@ -3,7 +3,8 @@
 	"type": "module",
 	"module": "src/entry.ts",
 	"scripts": {
-		"start": "bun run src/entry.ts",
+		"start": "bun run deploy && bun run src/entry.ts",
+		"dev": "bun run src/entry.ts",
 		"deploy": "bun run src/utils/deploy.ts",
 		"lint": "biome lint ./src",
 		"format": "biome format --write ./src",
