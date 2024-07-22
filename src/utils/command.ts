@@ -1,6 +1,8 @@
-import type {
-	AutocompleteInteraction,
-	ChatInputCommandInteraction,
+import {
+	Collection,
+	SlashCommandBuilder,
+	type AutocompleteInteraction,
+	type ChatInputCommandInteraction,
 } from "discord.js";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
@@ -23,6 +25,31 @@ export const commandSchema = z.object({
 	autocomplete: z.function().optional(),
 	cooldown: z.number().optional(),
 });
+
+export const commands = await createCommandCollection();
+
+async function createCommandCollection() {
+	const cmds = new Collection<
+		string,
+		{
+			handler: CommandHandler;
+			builder: SlashCommandBuilder;
+			autocomplete?: AutocompleteHandler;
+			cooldown?: number;
+		}
+	>();
+
+	for await (const file of commandFiles()) {
+		cmds.set(file.builder.name, {
+			handler: file.handler,
+			builder: file.builder,
+			autocomplete: file.autocomplete,
+			cooldown: file.cooldown,
+		});
+	}
+
+	return cmds;
+}
 
 export async function* commandFiles() {
 	const files = await readdir(path.join(__dirname, "../features"), {
