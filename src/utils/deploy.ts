@@ -30,11 +30,11 @@ try {
 	await rest.put(route, { body: commands });
 
 	logger.info(
-		`Successfully deployed all commands ${
+		`Successfully deployed commands ${
 			env.DISCORD_GUILD_ID ? `to guild ${env.DISCORD_GUILD_ID}` : "globally"
 		}`,
 	);
 } catch (e) {
-	logger.fatal(`Command deployment failed: ${getErrorMessage(e)}`);
+	logger.fatal(e, `Command deployment failed - ${getErrorMessage(e)}`);
 	process.exit(1);
 }
