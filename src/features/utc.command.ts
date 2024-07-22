@@ -13,7 +13,6 @@ export const handler: CommandHandler = async (i) => {
 		content: i18n.t("cmd-utc-response", {
 			utcTime: new Date().toUTCString().split(" ")[4],
 			lng: i.locale,
-			fallbackLng: "en",
 		}),
 		ephemeral: true,
 	});

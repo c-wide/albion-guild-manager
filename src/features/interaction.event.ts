@@ -5,11 +5,9 @@ import type {
 import { commands } from "~/utils/command";
 import { getLastUsage, isOnCooldown, setCooldown } from "~/utils/cooldown";
 import type { EventHandler, EventName } from "~/utils/event";
+import i18n from "~/utils/i18n";
 import { logger } from "~/utils/logger";
 import { getErrorMessage } from "~/utils/misc";
-
-// TODO: i18n
-// TODO: i.commandName localization?
 
 export const name: EventName = "interactionCreate";
 
@@ -29,7 +27,7 @@ function chatInputCommandHandler(i: ChatInputCommandInteraction): void {
 	if (!command) {
 		logger.warn({ name: i.commandName, user: i.user.id }, "Invalid command");
 		i.reply({
-			content: "This command does not exist",
+			content: i18n.t("commandUnknown", { lng: i.locale }),
 			ephemeral: true,
 		});
 		return;
@@ -43,7 +41,11 @@ function chatInputCommandHandler(i: ChatInputCommandInteraction): void {
 		const discordTimestamp = Math.round(expiresAt / 1000);
 
 		i.reply({
-			content: `Please wait, you are on a cooldown for the "${i.commandName}" command. You can use it again <t:${discordTimestamp}:R>.`,
+			content: i18n.t("commandCooldown", {
+				commandName: i.commandName,
+				discordTimestamp,
+				lng: i.locale,
+			}),
 			ephemeral: true,
 		});
 
@@ -53,7 +55,7 @@ function chatInputCommandHandler(i: ChatInputCommandInteraction): void {
 	setCooldown(i.commandName, i.user.id);
 
 	try {
-		logger.info({ name: i.commandName, user: i.user.id }, "Executing command");
+		logger.info({ name: i.commandName, user: i.user.id }, "Command executed");
 		command.handler(i);
 	} catch (e) {
 		logger.error(
@@ -63,14 +65,18 @@ function chatInputCommandHandler(i: ChatInputCommandInteraction): void {
 			)}`,
 		);
 
+		const errorMessage = i18n.t("commandGenericError", {
+			lng: i.locale,
+		});
+
 		if (i.replied || i.deferred) {
 			i.followUp({
-				content: "An error occurred while handling the command",
+				content: errorMessage,
 				ephemeral: true,
 			});
 		} else {
 			i.reply({
-				content: "An error occurred while handling the command",
+				content: errorMessage,
 				ephemeral: true,
 			});
 		}
