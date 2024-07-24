@@ -1,9 +1,20 @@
-import { pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import {
+	pgTable,
+	text,
+	timestamp,
+	unique,
+	uuid,
+	varchar,
+} from "drizzle-orm/pg-core";
 
 export const servers = pgTable("servers", {
 	id: uuid("id").defaultRandom().primaryKey(),
-	serverId: text("server_id").notNull(),
+	serverId: varchar("server_id", { length: 20 }).notNull(),
 	name: text("name").notNull(),
+	nameAcronym: text("name_acronym").notNull(),
+	iconURL: text("icon_url"),
+	bannerURL: text("banner_url"),
+	createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
 	joinedAt: timestamp("joined_at", { withTimezone: true })
 		.defaultNow()
 		.notNull(),
