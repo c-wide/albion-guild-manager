@@ -9,8 +9,10 @@ import i18n from "~/utils/i18n";
 import { logger } from "~/utils/logger";
 import { getErrorMessage } from "~/utils/misc";
 
-export const name: EventName = "interactionCreate";
+// TODO: handle DM commands
+// TODO: log if used in guild?
 
+export const name: EventName = "interactionCreate";
 export const once = false;
 
 export const handler: EventHandler<typeof name> = (i) => {
