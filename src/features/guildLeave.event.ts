@@ -27,7 +27,7 @@ export const handler: EventHandler<typeof name> = async (g) => {
 	guildIdCache.delete(g.id);
 };
 
-async function softDeleteGuild(id: string): Promise<void> {
+function softDeleteGuild(id: string): Promise<void> {
 	return db.transaction(async (tx) => {
 		await Promise.all([
 			tx.update(servers).set({ leftAt: new Date() }).where(eq(servers.id, id)),
