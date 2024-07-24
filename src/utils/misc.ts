@@ -26,7 +26,9 @@ export function getGuildId(guildId: string): string | null {
 export type GuildDiff = { serverId: string; changes: Record<string, unknown> };
 
 export function getGuildDiff(
+	// biome-ignore lint: expected any
 	oldGuild: any,
+	// biome-ignore lint: expected any
 	newGuild: any,
 	changeKeys: readonly string[],
 ): GuildDiff | null {
