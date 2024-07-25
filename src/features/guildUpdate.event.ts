@@ -40,7 +40,7 @@ export const handler: EventHandler<typeof name> = async (
 
 function logError(g: Guild, error: unknown): void {
 	logger.error(
-		{ serverId: g.id, name: g.name, error },
+		{ serverId: g.id, serverName: g.name, error },
 		"Failed to update database on guild settings change",
 	);
 }

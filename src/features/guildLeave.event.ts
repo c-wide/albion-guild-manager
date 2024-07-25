@@ -23,7 +23,7 @@ export const handler: EventHandler<typeof name> = async (g) => {
 		return;
 	}
 
-	logger.info({ id, serverId: g.id, name: g.name }, "Left guild");
+	logger.info({ id, serverId: g.id, serverName: g.name }, "Left guild");
 	guildIdCache.delete(g.id);
 };
 
@@ -41,7 +41,7 @@ function softDeleteGuild(id: string): Promise<void> {
 
 function logError(g: Guild, error: unknown): void {
 	logger.error(
-		{ serverId: g.id, name: g.name, error },
+		{ serverId: g.id, serverName: g.name, error },
 		"Failed to update database on guild leave",
 	);
 }

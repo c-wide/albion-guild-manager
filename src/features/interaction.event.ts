@@ -7,10 +7,7 @@ import { getLastUsage, isOnCooldown, setCooldown } from "~/utils/cooldown";
 import type { EventHandler, EventName } from "~/utils/event";
 import i18n from "~/utils/i18n";
 import { logger } from "~/utils/logger";
-import { getErrorMessage } from "~/utils/misc";
-
-// TODO: handle DM commands
-// TODO: log if used in guild?
+import { getErrorMessage, getGuildId } from "~/utils/misc";
 
 export const name: EventName = "interactionCreate";
 export const once = false;
@@ -27,7 +24,10 @@ function chatInputCommandHandler(i: ChatInputCommandInteraction): void {
 	const command = commands.get(i.commandName);
 
 	if (!command) {
-		logger.warn({ name: i.commandName, user: i.user.id }, "Invalid command");
+		logger.warn(
+			{ commandName: i.commandName, userId: i.user.id },
+			"Invalid command",
+		);
 		i.reply({
 			content: i18n.t("commandUnknown", { lng: i.locale }),
 			ephemeral: true,
@@ -57,7 +57,15 @@ function chatInputCommandHandler(i: ChatInputCommandInteraction): void {
 	setCooldown(i.commandName, i.user.id);
 
 	try {
-		logger.info({ name: i.commandName, user: i.user.id }, "Command executed");
+		logger.info(
+			{
+				commandName: i.commandName,
+				userId: i.user.id,
+				serverId: i.guildId && getGuildId(i.guildId),
+			},
+			"Command executed",
+		);
+
 		command.handler(i);
 	} catch (e) {
 		logger.error(
@@ -89,7 +97,10 @@ function autocompleteHandler(i: AutocompleteInteraction): void {
 	const command = commands.get(i.commandName);
 
 	if (!command) {
-		logger.warn({ name: i.commandName, user: i.user.id }, "Invalid command");
+		logger.warn(
+			{ commandName: i.commandName, userId: i.user.id },
+			"Invalid command",
+		);
 		i.respond([]);
 		return;
 	}

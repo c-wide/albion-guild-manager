@@ -25,12 +25,16 @@ export const handler: EventHandler<typeof name> = async (g) => {
 
 	if (error) {
 		logger.error(
-			{ serverId: g.id, name: g.name, error },
+			{ serverId: g.id, serverName: g.name, error },
 			"Failed to insert new server into database",
 		);
 		return;
 	}
 
-	logger.info({ id: data[0].id, serverId: g.id, name: g.name }, "Guild joined");
+	logger.info(
+		{ id: data[0].id, serverId: g.id, serverName: g.name },
+		"Guild joined",
+	);
+
 	guildIdCache.set(g.id, data[0].id);
 };
