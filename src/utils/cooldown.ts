@@ -43,9 +43,9 @@ setInterval(() => {
 		const command = commands.get(key.split(":")[0]);
 		if (!command || !command.cooldown) continue;
 
-		const expirationTime = lastUsage + command.cooldown * 1000;
+		const expirationTime = lastUsage + command.cooldown * 1_000;
 		if (now > expirationTime) {
 			cooldowns.delete(key);
 		}
 	}
-}, 1000);
+}, 1_000);

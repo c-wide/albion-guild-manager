@@ -39,8 +39,8 @@ function chatInputCommandHandler(i: ChatInputCommandInteraction): void {
 		const lastUsage = getLastUsage(i.commandName, i.user.id);
 		if (!lastUsage) return;
 
-		const expiresAt = lastUsage + (command.cooldown ?? 0) * 1000;
-		const discordTimestamp = Math.round(expiresAt / 1000);
+		const expiresAt = lastUsage + (command.cooldown ?? 0) * 1_000;
+		const discordTimestamp = Math.round(expiresAt / 1_000);
 
 		i.reply({
 			content: i18n.t("commandCooldown", {
