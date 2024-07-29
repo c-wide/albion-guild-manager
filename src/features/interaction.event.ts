@@ -20,7 +20,9 @@ export const handler: EventHandler<typeof name> = (i) => {
 	}
 };
 
-function chatInputCommandHandler(i: ChatInputCommandInteraction): void {
+async function chatInputCommandHandler(
+	i: ChatInputCommandInteraction,
+): Promise<void> {
 	const command = commands.get(i.commandName);
 
 	if (!command) {
@@ -28,7 +30,7 @@ function chatInputCommandHandler(i: ChatInputCommandInteraction): void {
 			{ commandName: i.commandName, userId: i.user.id },
 			"Invalid command",
 		);
-		i.reply({
+		await i.reply({
 			content: i18n.t("commandUnknown", { lng: i.locale }),
 			ephemeral: true,
 		});
@@ -42,7 +44,7 @@ function chatInputCommandHandler(i: ChatInputCommandInteraction): void {
 		const expiresAt = lastUsage + (command.cooldown ?? 0) * 1_000;
 		const discordTimestamp = Math.round(expiresAt / 1_000);
 
-		i.reply({
+		await i.reply({
 			content: i18n.t("commandCooldown", {
 				commandName: i.commandName,
 				discordTimestamp,
@@ -66,7 +68,7 @@ function chatInputCommandHandler(i: ChatInputCommandInteraction): void {
 			"Command executed",
 		);
 
-		command.handler(i);
+		await command.handler(i);
 	} catch (e) {
 		logger.error(
 			e,
