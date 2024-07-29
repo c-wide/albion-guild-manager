@@ -1,4 +1,12 @@
+import { AlbionSDK } from "albion-sdk";
 import { logger } from "~/utils/logger";
+import { config } from "~/utils/config";
+
+export const sdks = {
+	Americas: new AlbionSDK("Americas"),
+	Asia: new AlbionSDK("Asia"),
+	Europe: new AlbionSDK("Europe"),
+};
 
 export function getErrorMessage(error: unknown) {
 	if (typeof error === "string") return error;
