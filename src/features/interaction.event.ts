@@ -1,3 +1,4 @@
+import { until } from "@open-draft/until";
 import type {
 	AutocompleteInteraction,
 	ChatInputCommandInteraction,
@@ -7,16 +8,29 @@ import { getLastUsage, isOnCooldown, setCooldown } from "~/utils/cooldown";
 import type { EventHandler, EventName } from "~/utils/event";
 import i18n from "~/utils/i18n";
 import { logger } from "~/utils/logger";
-import { getErrorMessage, getGuildId } from "~/utils/misc";
+import { createErrorEmbed, createGenericEmbed, getGuildId } from "~/utils/misc";
 
 export const name: EventName = "interactionCreate";
 export const once = false;
 
-export const handler: EventHandler<typeof name> = (i) => {
-	if (i.isChatInputCommand()) {
-		chatInputCommandHandler(i);
-	} else if (i.isAutocomplete()) {
-		autocompleteHandler(i);
+export const handler: EventHandler<typeof name> = async (i) => {
+	const { error } = await until(async () => {
+		if (i.isChatInputCommand()) {
+			return chatInputCommandHandler(i);
+		} else if (i.isAutocomplete()) {
+			return autocompleteHandler(i);
+		}
+	});
+
+	if (error) {
+		logger.error(
+			{
+				commandName: i.isCommand() && i.commandName,
+				userId: i.user.id,
+				serverId: i.guildId && getGuildId(i.guildId),
+			},
+			"Uncaught command interaction error",
+		);
 	}
 };
 
@@ -27,12 +41,22 @@ async function chatInputCommandHandler(
 
 	if (!command) {
 		logger.warn(
-			{ commandName: i.commandName, userId: i.user.id },
+			{
+				commandName: i.commandName,
+				userId: i.user.id,
+				serverId: i.guildId && getGuildId(i.guildId),
+			},
 			"Invalid command",
 		);
 		await i.reply({
-			content: i18n.t("commandUnknown", { lng: i.locale }),
+			content: "",
 			ephemeral: true,
+			embeds: [
+				createErrorEmbed(
+					i18n.t("cmd-err-unknown", { lng: i.locale }),
+					i.locale,
+				),
+			],
 		});
 		return;
 	}
@@ -45,12 +69,20 @@ async function chatInputCommandHandler(
 		const discordTimestamp = Math.round(expiresAt / 1_000);
 
 		await i.reply({
-			content: i18n.t("commandCooldown", {
-				commandName: i.commandName,
-				discordTimestamp,
-				lng: i.locale,
-			}),
+			content: "",
 			ephemeral: true,
+			embeds: [
+				createGenericEmbed({
+					title: i18n.t("cmd-res-cooldown-title", {
+						lng: i.locale,
+					}),
+					description: i18n.t("cmd-res-cooldown-desc", {
+						commandName: i.commandName,
+						discordTimestamp,
+						lng: i.locale,
+					}),
+				}),
+			],
 		});
 
 		return;
@@ -71,39 +103,47 @@ async function chatInputCommandHandler(
 		await command.handler(i);
 	} catch (e) {
 		logger.error(
-			e,
-			`Error while handling the "${i.commandName}" command - ${getErrorMessage(
-				e,
-			)}`,
+			{
+				commandName: i.commandName,
+				userId: i.user.id,
+				serverId: i.guildId && getGuildId(i.guildId),
+			},
+			"Error while handling command",
 		);
 
-		const errorMessage = i18n.t("commandGenericError", {
+		const errorMessage = i18n.t("cmd-err-generic", {
 			lng: i.locale,
 		});
 
 		if (i.replied || i.deferred) {
-			i.followUp({
-				content: errorMessage,
+			await i.followUp({
+				content: "",
 				ephemeral: true,
+				embeds: [createErrorEmbed(errorMessage, i.locale)],
 			});
 		} else {
-			i.reply({
-				content: errorMessage,
+			await i.reply({
+				content: "",
 				ephemeral: true,
+				embeds: [createErrorEmbed(errorMessage, i.locale)],
 			});
 		}
 	}
 }
 
-function autocompleteHandler(i: AutocompleteInteraction): void {
+async function autocompleteHandler(i: AutocompleteInteraction): Promise<void> {
 	const command = commands.get(i.commandName);
 
 	if (!command) {
 		logger.warn(
-			{ commandName: i.commandName, userId: i.user.id },
+			{
+				commandName: i.commandName,
+				userId: i.user.id,
+				serverId: i.guildId && getGuildId(i.guildId),
+			},
 			"Invalid command",
 		);
-		i.respond([]);
+		await i.respond([]);
 		return;
 	}
 
