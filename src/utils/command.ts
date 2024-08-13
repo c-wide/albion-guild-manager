@@ -40,6 +40,11 @@ async function createCommandCollection() {
 	>();
 
 	for await (const file of commandFiles()) {
+		if (cmds.has(file.builder.name)) {
+			console.error(`Duplicate command detected: ${file.builder.name}`);
+			process.exit(1);
+		}
+
 		cmds.set(file.builder.name, {
 			handler: file.handler,
 			builder: file.builder,
@@ -65,7 +70,7 @@ export async function* commandFiles() {
 		if (!parsed.success) {
 			console.error(`❌ Invalid command file [${file}]`);
 			console.error(parsed.error.issues);
-			throw new Error("Invalid command file");
+			process.exit(1);
 		}
 
 		yield fileData;

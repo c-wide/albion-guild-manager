@@ -35,7 +35,7 @@ export async function* eventFiles() {
 		if (!parsed.success) {
 			console.error(`❌ Invalid event file [${file}]`);
 			console.error(parsed.error.issues);
-			throw new Error("Invalid event file");
+			process.exit(1);
 		}
 
 		yield fileData;
