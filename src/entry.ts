@@ -10,4 +10,7 @@ registerEvents(client);
 
 client.login(env.DISCORD_TOKEN);
 
+// TODO: adapt code for sharding in the future
+// TODO: when I provide translations to commands do I need to put the default lng?
+// TODO: reorganize translations file, use subobjects and additional namespaces if needed
 // TODO: unhandled rejection and uncaught exceptions
