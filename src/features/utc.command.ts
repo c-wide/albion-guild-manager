@@ -10,7 +10,7 @@ export const builder = new SlashCommandBuilder()
 
 export const handler: CommandHandler = async (i) => {
 	await i.reply({
-		content: i18n.t("cmd-utc-response", {
+		content: i18n.t("cmd-utc-res", {
 			utcTime: new Date().toUTCString().split(" ")[4],
 			lng: i.locale,
 		}),
