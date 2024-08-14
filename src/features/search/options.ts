@@ -26,6 +26,7 @@ export function parseOptions(i: ChatInputCommandInteraction): SearchOptions {
 		true,
 	);
 
+	// Default value is false
 	const isPublic =
 		i.options.getBoolean(i18n.t("cmd-opt-isPublic-name")) ?? false;
 

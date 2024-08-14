@@ -11,7 +11,6 @@ import i18n from "~/utils/i18n";
 import { createErrorEmbed, createGenericEmbed } from "~/utils/misc";
 
 // TODO: if only 1 result, just search for it
-// TODO: add comments lol
 
 export const cooldown = 10;
 
@@ -64,15 +63,19 @@ export const builder = new SlashCommandBuilder()
 	);
 
 export const handler: CommandHandler = async (i) => {
+	// Parse command options
 	const options = parseOptions(i);
 	const { entityType, searchTerm, serverRegion, isPublic } = options;
 
+	// Initial deferral to prevent timeouts
 	await i.deferReply({ ephemeral: !isPublic });
 
+	// Gather search results based on options provided
 	const { error: searchError, data: searchResults } = await until(() =>
 		genericSearch(options, i.locale),
 	);
 
+	// If there was an error while searching, log & send generic error response
 	if (searchError) {
 		logger.error(
 			{ ...options, error: searchError },
@@ -88,6 +91,7 @@ export const handler: CommandHandler = async (i) => {
 		return;
 	}
 
+	// Handle response if there are no search results
 	if (searchResults.length === 0) {
 		await i.followUp({
 			content: "",
@@ -106,6 +110,7 @@ export const handler: CommandHandler = async (i) => {
 		return;
 	}
 
+	// Send select menu to user with the search results & await response
 	const message = await sendSelectMenu(i, options, searchResults);
 	const { error: messageInteractionError, data: messageInteraction } =
 		await until(() =>
@@ -115,6 +120,7 @@ export const handler: CommandHandler = async (i) => {
 			}),
 		);
 
+	// If there was an error here, it's usually because the user didn't make a selection
 	if (messageInteractionError) {
 		await i.editReply({
 			content: "",
@@ -133,18 +139,22 @@ export const handler: CommandHandler = async (i) => {
 		return;
 	}
 
+	// Typescript is a fun language
 	if (!messageInteraction.isStringSelectMenu()) return;
 
+	// Update user that we're searching so the select menu response doesn't timeout
 	await messageInteraction.update({
 		content: i18n.t("cmd-search-res-searching", { entityType, lng: i.locale }),
 		components: [],
 	});
 
+	// Parse the entity id and search for specific entity details
 	const entityId = messageInteraction.values[0];
 	const { error: entityDetailsError, data: entityDetails } = await until(() =>
 		getEntityDetails(entityId, entityType, serverRegion),
 	);
 
+	// If there was an error while searching for details, log & send generic error response
 	if (entityDetailsError) {
 		logger.error(
 			{ ...options, error: entityDetailsError },
@@ -160,6 +170,7 @@ export const handler: CommandHandler = async (i) => {
 		return;
 	}
 
+	// If everything went well, send a response with the detailed information
 	await messageInteraction.editReply({
 		content: "",
 		components: [],

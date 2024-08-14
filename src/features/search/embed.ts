@@ -83,11 +83,13 @@ function createPveOrGatherField(
 
 	const value = fieldMaps
 		.map((fieldMap) => {
+			// i18n nonsense
 			const suffix =
 				fieldMap.key === "total"
 					? "total"
 					: `playerInfo-${identifier}-${fieldMap.key}`;
 
+			// Extract value from generic target
 			const container = target[fieldMap.field as keyof typeof target] as
 				| number
 				| Record<string, number>;

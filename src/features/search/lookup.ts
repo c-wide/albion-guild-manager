@@ -17,6 +17,8 @@ export async function genericSearch(
 ): Promise<SearchResult[]> {
 	const { entityType, serverRegion, searchTerm } = options;
 
+	// If searching for a player or guild, I want to use Albion Killboard API
+	// If searching for an alliance, I want to use Albion Registry API
 	switch (entityType) {
 		case "player":
 		case "guild": {
