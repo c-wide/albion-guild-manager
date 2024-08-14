@@ -7,7 +7,8 @@ export const common = {
 
 	// Common error translations
 	"embed-err-generic-title": "Uh Oh! Something Went Wrong!",
-	"embed-err-generic-footer": `If you continue to experience this issue, please visit our [Discord]({{url}}) for assistance.`,
+	"embed-err-generic-footer":
+		"If you continue to experience this issue, please visit our [Discord]({{url}}) for assistance.",
 	"cmd-err-generic": "An error occurred while handling the command",
 	"cmd-err-unknown": "The command you attempted to use does not exist",
 	"cmd-err-ao-api":

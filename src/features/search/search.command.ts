@@ -106,8 +106,6 @@ export const handler: CommandHandler = async (i) => {
 		return;
 	}
 
-	// TODO: do I need to check if interaction is from same user?
-
 	const message = await sendSelectMenu(i, options, searchResults);
 	const { error: messageInteractionError, data: messageInteraction } =
 		await until(() =>

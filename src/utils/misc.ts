@@ -1,5 +1,5 @@
 import { AlbionSDK } from "albion-sdk";
-import { EmbedBuilder, type APIEmbedField, type RestOrArray } from "discord.js";
+import { EmbedBuilder, type APIEmbedField } from "discord.js";
 import { logger } from "~/utils/logger";
 import i18n from "~/utils/i18n";
 import { config } from "./config";

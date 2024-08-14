@@ -16,9 +16,13 @@ export const once = false;
 export const handler: EventHandler<typeof name> = async (i) => {
 	const { error } = await until(async () => {
 		if (i.isChatInputCommand()) {
-			return chatInputCommandHandler(i);
-		} else if (i.isAutocomplete()) {
-			return autocompleteHandler(i);
+			await chatInputCommandHandler(i);
+			return;
+		}
+
+		if (i.isAutocomplete()) {
+			await autocompleteHandler(i);
+			return;
 		}
 	});
 
@@ -104,6 +108,7 @@ async function chatInputCommandHandler(
 	} catch (e) {
 		logger.error(
 			{
+				error: e,
 				commandName: i.commandName,
 				userId: i.user.id,
 				serverId: i.guildId && getGuildId(i.guildId),
