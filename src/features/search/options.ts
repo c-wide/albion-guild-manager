@@ -12,23 +12,24 @@ export type SearchOptions = {
 
 export function parseOptions(i: ChatInputCommandInteraction): SearchOptions {
 	const entityType = i.options.getString(
-		i18n.t("cmd-search-opt-entityType-name"),
+		i18n.t("option.entityType.name", { ns: "common" }),
 		true,
 	) as "player" | "guild" | "alliance";
 
 	const serverRegion = i.options.getString(
-		i18n.t("cmd-search-opt-serverRegion-name"),
+		i18n.t("option.serverRegion.name", { ns: "common" }),
 		true,
 	) as AlbionServerRegion;
 
 	const searchTerm = i.options.getString(
-		i18n.t("cmd-search-opt-searchTerm-name"),
+		i18n.t("option.searchTerm.name", { ns: "common" }),
 		true,
 	);
 
 	// Default value is false
 	const isPublic =
-		i.options.getBoolean(i18n.t("cmd-opt-isPublic-name")) ?? false;
+		i.options.getBoolean(i18n.t("option.isPublic.name", { ns: "common" })) ??
+		false;
 
 	return { entityType, serverRegion, searchTerm, isPublic };
 }

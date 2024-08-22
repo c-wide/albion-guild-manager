@@ -57,7 +57,7 @@ async function chatInputCommandHandler(
 			ephemeral: true,
 			embeds: [
 				createErrorEmbed(
-					i18n.t("cmd-err-unknown", { lng: i.locale }),
+					i18n.t("command.error.unknown", { ns: "system", lng: i.locale }),
 					i.locale,
 				),
 			],
@@ -77,12 +77,14 @@ async function chatInputCommandHandler(
 			ephemeral: true,
 			embeds: [
 				createGenericEmbed({
-					title: i18n.t("cmd-res-cooldown-title", {
+					title: i18n.t("command.cooldown.title", {
+						ns: "system",
 						lng: i.locale,
 					}),
-					description: i18n.t("cmd-res-cooldown-desc", {
+					description: i18n.t("command.cooldown.desc", {
 						commandName: i.commandName,
 						discordTimestamp,
+						ns: "system",
 						lng: i.locale,
 					}),
 				}),
@@ -116,7 +118,8 @@ async function chatInputCommandHandler(
 			"Error while handling command",
 		);
 
-		const errorMessage = i18n.t("cmd-err-generic", {
+		const errorMessage = i18n.t("command.error.generic", {
+			ns: "system",
 			lng: i.locale,
 		});
 

@@ -18,7 +18,9 @@ export async function sendSelectMenu(
 
 	const selectMenu = new StringSelectMenuBuilder()
 		.setCustomId("search_entity")
-		.setPlaceholder(i18n.t("select-menu-placeholder", { lng: i.locale }))
+		.setPlaceholder(
+			i18n.t("phrases.selectPlaceholder", { ns: "common", lng: i.locale }),
+		)
 		.addOptions(
 			searchResults.map((result) =>
 				new StringSelectMenuOptionBuilder()
@@ -33,8 +35,9 @@ export async function sendSelectMenu(
 	);
 
 	const response = await i.followUp({
-		content: i18n.t("cmd-search-res-selectEntity", {
+		content: i18n.t("search.response.selectEntity", {
 			entityType,
+			ns: "commands",
 			lng: i.locale,
 		}),
 		components: [row],

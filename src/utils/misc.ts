@@ -94,10 +94,11 @@ export function createErrorEmbed(
 	locale: string,
 ): EmbedBuilder {
 	return new EmbedBuilder()
-		.setTitle(i18n.t("embed-err-generic-title", { lng: locale }))
+		.setTitle(i18n.t("error.generic.title", { ns: "system", lng: locale }))
 		.setDescription(
-			`${message}\n\n${i18n.t("embed-err-generic-footer", {
+			`${message}\n\n${i18n.t("error.generic.footer", {
 				url: config.supportDiscordURL,
+				ns: "system",
 				lng: locale,
 				interpolation: { escapeValue: false },
 			})}`,

@@ -53,11 +53,11 @@ function createField(
 ): APIEmbedField {
 	return {
 		// @ts-ignore
-		name: i18n.t(`cmd-search-embed-${key}`, { lng: locale }),
+		name: i18n.t(`phrases.${key}`, { ns: "common", lng: locale }),
 		value:
 			typeof value === "number"
 				? value.toLocaleString(locale)
-				: value || i18n.t("cmd-search-embed-na", { lng: locale }),
+				: value || i18n.t("phrases.na", { ns: "common", lng: locale }),
 		inline,
 	};
 }
@@ -72,47 +72,42 @@ function createEmptyField(inline: boolean): APIEmbedField {
 
 function createPveOrGatherField(
 	target: PVE | Gathering,
-	fieldMaps: {
+	i18nFieldMaps: {
 		key: string;
 		field: string;
 	}[],
 	lng: Locale,
 ): APIEmbedField {
-	const identifier = "Royal" in target ? "pve" : "gather";
-	const prefix = "cmd-search-embed";
+	const identifier = "Royal" in target ? "pve" : "gathering";
 
-	const value = fieldMaps
+	const value = i18nFieldMaps
 		.map((fieldMap) => {
-			// i18n nonsense
-			const suffix =
-				fieldMap.key === "total"
-					? "total"
-					: `playerInfo-${identifier}-${fieldMap.key}`;
-
 			// Extract value from generic target
 			const container = target[fieldMap.field as keyof typeof target] as
 				| number
 				| Record<string, number>;
 
+			// If target is Gathering the total is stored in an obj
 			const targetValue =
 				typeof container === "object" ? container.Total : container;
 
 			// @ts-ignore
-			return `**${i18n.t(`${prefix}-${suffix}`, {
+			return `**${i18n.t(`phrases.${fieldMap.key}Label`, {
+				ns: "common",
 				lng,
 			})}** *${targetValue.toLocaleString(lng)}*`;
 		})
 		.join("\n");
 
 	return {
-		name: i18n.t(`cmd-search-embed-playerInfo-${identifier}`, { lng }),
+		name: i18n.t(`phrases.${identifier}Fame`, { ns: "common", lng }),
 		value,
 		inline: true,
 	};
 }
 
 function createPveField(pve: PVE, locale: Locale): APIEmbedField {
-	const fieldMaps = [
+	const i18nFieldMaps = [
 		{ key: "royal", field: "Royal" },
 		{ key: "outlands", field: "Outlands" },
 		{ key: "avalon", field: "Avalon" },
@@ -122,11 +117,11 @@ function createPveField(pve: PVE, locale: Locale): APIEmbedField {
 		{ key: "total", field: "Total" },
 	];
 
-	return createPveOrGatherField(pve, fieldMaps, locale);
+	return createPveOrGatherField(pve, i18nFieldMaps, locale);
 }
 
 function createGatherField(gather: Gathering, locale: Locale): APIEmbedField {
-	const fieldMaps = [
+	const i18nFieldMaps = [
 		{ key: "fiber", field: "Fiber" },
 		{ key: "hide", field: "Hide" },
 		{ key: "ore", field: "Ore" },
@@ -135,7 +130,7 @@ function createGatherField(gather: Gathering, locale: Locale): APIEmbedField {
 		{ key: "total", field: "All" },
 	];
 
-	return createPveOrGatherField(gather, fieldMaps, locale);
+	return createPveOrGatherField(gather, i18nFieldMaps, locale);
 }
 
 type Links = {
@@ -149,13 +144,15 @@ function createLinksField(links: Links, lng: Locale): APIEmbedField {
 	const value = links
 		.map((link) => {
 			// @ts-ignore
-			const label = `[${i18n.t(`cmd-search-embed-links-${link.labeli18nKey}`, {
+			const label = `[${i18n.t(`phrases.${link.labeli18nKey}`, {
+				ns: "common",
 				lng,
 			})}](${link.labelUrl})`;
 
-			const pb = `${i18n.t("cmd-search-embed-links-poweredBy", {
+			const pb = `${i18n.t("phrases.poweredByLabel", {
 				name: link.pbName,
 				url: link.pbUrl,
+				ns: "common",
 				lng,
 				interpolation: {
 					escapeValue: false,
@@ -167,7 +164,7 @@ function createLinksField(links: Links, lng: Locale): APIEmbedField {
 		.join("\n");
 
 	return {
-		name: i18n.t("cmd-search-embed-links", { lng }),
+		name: i18n.t("phrases.link_other", { ns: "common", lng }),
 		value,
 		inline: false,
 	};
@@ -211,22 +208,22 @@ function createPlayerEmbed(
 	const fields: APIEmbedField[] = [
 		createField("uid", `\`\`\`${entityDetails.Id}\`\`\``, lng, false),
 		createField("name", entityDetails.Name, lng),
-		createField("playerInfo-guild", entityDetails.GuildName, lng),
-		createField("playerInfo-alliance", entityDetails.AllianceName, lng),
+		createField("guild_one", entityDetails.GuildName, lng),
+		createField("alliance_one", entityDetails.AllianceName, lng),
 		createField("killFame", entityDetails.KillFame, lng),
 		createField("deathFame", entityDetails.DeathFame, lng),
 		createField("kdRatio", entityDetails.FameRatio.toFixed(2), lng),
 		createPveField(ls.PvE, lng),
 		createGatherField(ls.Gathering, lng),
 		createEmptyField(false),
-		createField("playerInfo-craft", ls.Crafting.Total, lng),
-		createField("playerInfo-farm", ls.FarmingFame, lng),
-		createField("playerInfo-fish", ls.FishingFame, lng),
+		createField("craftingFame", ls.Crafting.Total, lng),
+		createField("farmingFame", ls.FarmingFame, lng),
+		createField("fishingFame", ls.FishingFame, lng),
 		createLinksField(links, lng),
 	];
 
 	return new EmbedBuilder()
-		.setTitle(i18n.t("cmd-search-embed-playerInfo", { lng }))
+		.setTitle(i18n.t("phrases.playerInfo", { ns: "common", lng }))
 		.addFields(fields)
 		.setColor(defaultEmbedColor)
 		.setFooter({
@@ -265,7 +262,7 @@ function createGuildEmbed(
 		createField("uid", `\`\`\`${entityDetails.Id}\`\`\``, lng, false),
 		createField("name", entityDetails.Name, lng),
 		createField(
-			"guildInfo-allyTag",
+			"allyTag",
 			entityDetails.AllianceTag ? `[${entityDetails.AllianceTag}]` : "",
 			lng,
 		),
@@ -283,7 +280,7 @@ function createGuildEmbed(
 	];
 
 	return new EmbedBuilder()
-		.setTitle(i18n.t("cmd-search-embed-guildInfo", { lng }))
+		.setTitle(i18n.t("phrases.guildInfo", { ns: "common", lng }))
 		.addFields(fields)
 		.setColor(defaultEmbedColor)
 		.setFooter({
@@ -301,7 +298,7 @@ function createAllianceEmbed(
 
 	const links: Links = [
 		{
-			labeli18nKey: "gHistory",
+			labeli18nKey: "guildHistory",
 			labelUrl: `${
 				linkMap.albionRegistry.url
 			}/${entityType}/${serverRegion.toLowerCase()}/${
@@ -323,13 +320,13 @@ function createAllianceEmbed(
 	const fields: APIEmbedField[] = [
 		createField("uid", `\`\`\`${entityDetails.AllianceId}\`\`\``, lng, false),
 		createField("name", entityDetails.AllianceName, lng),
-		createField("allyInfo-tag", `[${entityDetails.AllianceTag}]`, lng),
+		createField("tag", `[${entityDetails.AllianceTag}]`, lng),
 		createEmptyField(false),
 		createField("founderName", entityDetails.FounderName, lng),
 		createField("creationDate", entityDetails.Founded.split("T")[0], lng),
 		createEmptyField(false),
 		createField(
-			"allyInfo-guilds",
+			"guild_other",
 			entityDetails.Guilds.map((g) => g.Name).join("\n"),
 			lng,
 		),
@@ -338,7 +335,7 @@ function createAllianceEmbed(
 	];
 
 	return new EmbedBuilder()
-		.setTitle(i18n.t("cmd-search-embed-allyInfo", { lng }))
+		.setTitle(i18n.t("phrases.allyInfo", { ns: "common", lng }))
 		.addFields(fields)
 		.setColor(defaultEmbedColor)
 		.setFooter({

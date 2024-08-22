@@ -11,54 +11,60 @@ import i18n from "~/utils/i18n";
 import { createErrorEmbed, createGenericEmbed } from "~/utils/misc";
 
 // TODO: if only 1 result, just search for it
+// TODO: add name locaziations to command builder
 
 export const cooldown = 10;
 
 export const builder = new SlashCommandBuilder()
-	.setName(i18n.t("cmd-search-name"))
-	.setDescription(i18n.t("cmd-search-desc"))
+	.setName(i18n.t("search.name", { ns: "commands" }))
+	.setDescription(i18n.t("search.desc", { ns: "commands" }))
 	.addStringOption((option) =>
 		option
-			.setName(i18n.t("cmd-search-opt-entityType-name"))
-			.setDescription(i18n.t("cmd-search-opt-entityType-desc"))
+			.setName(i18n.t("option.entityType.name", { ns: "common" }))
+			.setDescription(i18n.t("option.entityType.desc", { ns: "common" }))
 			.setRequired(true)
 			.addChoices(
 				{
-					name: i18n.t("cmd-opt-choice-player"),
+					name: i18n.t("phrases.player", { count: 1, ns: "common" }),
 					value: "player",
 				},
 				{
-					name: i18n.t("cmd-opt-choice-guild"),
+					name: i18n.t("phrases.guild", { count: 1, ns: "common" }),
 					value: "guild",
 				},
 				{
-					name: i18n.t("cmd-opt-choice-alliance"),
+					name: i18n.t("phrases.alliance", { count: 1, ns: "common" }),
 					value: "alliance",
 				},
 			),
 	)
 	.addStringOption((option) =>
 		option
-			.setName(i18n.t("cmd-search-opt-serverRegion-name"))
-			.setDescription(i18n.t("cmd-search-opt-serverRegion-desc"))
+			.setName(i18n.t("option.serverRegion.name", { ns: "common" }))
+			.setDescription(i18n.t("option.serverRegion.desc", { ns: "common" }))
 			.setRequired(true)
 			.addChoices(
 				config.albionServerRegions.map((region) => ({
-					name: i18n.t(`cmd-opt-choice-${region}`),
+					name: i18n.t(
+						`phrases.${region.toLowerCase() as "americas" | "asia" | "europe"}`,
+						{ ns: "common" },
+					),
 					value: region,
 				})),
 			),
 	)
 	.addStringOption((option) =>
 		option
-			.setName(i18n.t("cmd-search-opt-searchTerm-name"))
-			.setDescription(i18n.t("cmd-search-opt-searchTerm-desc"))
+			.setName(i18n.t("option.searchTerm.name", { ns: "common" }))
+			.setDescription(
+				i18n.t("search.option.searchTerm.desc", { ns: "commands" }),
+			)
 			.setRequired(true),
 	)
 	.addBooleanOption((option) =>
 		option
-			.setName(i18n.t("cmd-opt-isPublic-name"))
-			.setDescription(i18n.t("cmd-opt-isPublic-desc"))
+			.setName(i18n.t("option.isPublic.name", { ns: "common" }))
+			.setDescription(i18n.t("option.isPublic.desc", { ns: "common" }))
 			.setRequired(false),
 	);
 
@@ -85,7 +91,10 @@ export const handler: CommandHandler = async (i) => {
 			content: "",
 			components: [],
 			embeds: [
-				createErrorEmbed(i18n.t("cmd-err-ao-api", { lng: i.locale }), i.locale),
+				createErrorEmbed(
+					i18n.t("error.killboardAPI", { ns: "common", lng: i.locale }),
+					i.locale,
+				),
 			],
 		});
 		return;
@@ -98,10 +107,14 @@ export const handler: CommandHandler = async (i) => {
 			components: [],
 			embeds: [
 				createGenericEmbed({
-					title: i18n.t("cmd-search-res-noResults-title", { lng: i.locale }),
-					description: i18n.t("cmd-search-res-noResults-desc", {
+					title: i18n.t("response.noResults.title", {
+						ns: "common",
+						lng: i.locale,
+					}),
+					description: i18n.t("response.noResults.desc", {
 						entityType,
 						searchTerm,
+						ns: "common",
 						lng: i.locale,
 					}),
 				}),
@@ -127,9 +140,13 @@ export const handler: CommandHandler = async (i) => {
 			components: [],
 			embeds: [
 				createGenericEmbed({
-					title: i18n.t("cmd-search-res-noConfirm-title", { lng: i.locale }),
-					description: i18n.t("cmd-search-res-noConfirm-desc", {
+					title: i18n.t("response.noConfim.title", {
+						ns: "common",
+						lng: i.locale,
+					}),
+					description: i18n.t("response.noConfim.desc", {
 						timeframe: "3 minutes",
+						ns: "common",
 						lng: i.locale,
 					}),
 					color: "#FF5F15",
@@ -144,7 +161,11 @@ export const handler: CommandHandler = async (i) => {
 
 	// Update user that we're searching so the select menu response doesn't timeout
 	await messageInteraction.update({
-		content: i18n.t("cmd-search-res-searching", { entityType, lng: i.locale }),
+		content: i18n.t("search.response.searching", {
+			entityType,
+			ns: "commands",
+			lng: i.locale,
+		}),
 		components: [],
 	});
 
@@ -164,7 +185,10 @@ export const handler: CommandHandler = async (i) => {
 			content: "",
 			components: [],
 			embeds: [
-				createErrorEmbed(i18n.t("cmd-err-ao-api", { lng: i.locale }), i.locale),
+				createErrorEmbed(
+					i18n.t("error.killboardAPI", { ns: "common", lng: i.locale }),
+					i.locale,
+				),
 			],
 		});
 		return;
