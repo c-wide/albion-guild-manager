@@ -56,7 +56,7 @@ function createField(
 		name: i18n.t(`phrases.${key}`, { ns: "common", lng: locale }),
 		value:
 			typeof value === "number"
-				? value.toLocaleString(locale)
+				? new Intl.NumberFormat(locale).format(value)
 				: value || i18n.t("phrases.na", { ns: "common", lng: locale }),
 		inline,
 	};

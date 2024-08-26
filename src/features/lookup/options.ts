@@ -22,7 +22,7 @@ export function parseOptions(i: ChatInputCommandInteraction): SearchOptions {
 	) as AlbionServerRegion;
 
 	const searchTerm = i.options.getString(
-		i18n.t("option.searchTerm.name", { ns: "common", lng: "en" }),
+		i18n.t("lookup.option.searchTerm.name", { ns: "commands", lng: "en" }),
 		true,
 	);
 

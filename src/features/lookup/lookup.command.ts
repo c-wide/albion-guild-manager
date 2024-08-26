@@ -42,7 +42,9 @@ const serverRegionOption: OptionFunc<SlashCommandStringOption> = (option) =>
 
 const searchTermOption: OptionFunc<SlashCommandStringOption> = (option) =>
 	option
-		.setName(i18n.t("option.searchTerm.name", { ns: "common", lng: "en" }))
+		.setName(
+			i18n.t("lookup.option.searchTerm.name", { ns: "commands", lng: "en" }),
+		)
 		.setDescription(
 			i18n.t("lookup.option.searchTerm.desc", { ns: "commands", lng: "en" }),
 		)

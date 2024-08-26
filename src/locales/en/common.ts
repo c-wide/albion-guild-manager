@@ -60,17 +60,9 @@ export const common = {
 			name: "is_public",
 			desc: "Should the command response should be publicly visible",
 		},
-		entityType: {
-			name: "entity_type",
-			desc: "The type of entity to target",
-		},
 		serverRegion: {
 			name: "server_region",
 			desc: "Which Albion Online server to target",
-		},
-		searchTerm: {
-			name: "search_term",
-			desc: "The keyword to search for",
 		},
 	},
 	response: {

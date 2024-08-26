@@ -17,6 +17,7 @@ export const lookup = {
 	},
 	option: {
 		searchTerm: {
+			name: "search_term",
 			desc: "The name of the player, guild, or alliance to search for",
 		},
 	},
