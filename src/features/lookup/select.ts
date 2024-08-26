@@ -5,8 +5,8 @@ import {
 	type ChatInputCommandInteraction,
 	type Message,
 } from "discord.js";
-import type { SearchResult } from "~/features/search/lookup";
-import type { SearchOptions } from "~/features/search/options";
+import type { SearchResult } from "~/features/lookup/search";
+import type { SearchOptions } from "~/features/lookup/options";
 import i18n from "~/utils/i18n";
 
 export async function sendSelectMenu(
@@ -35,7 +35,7 @@ export async function sendSelectMenu(
 	);
 
 	const response = await i.followUp({
-		content: i18n.t("search.response.selectEntity", {
+		content: i18n.t("lookup.response.selectEntity", {
 			entityType,
 			ns: "commands",
 			lng: i.locale,

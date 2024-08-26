@@ -109,3 +109,5 @@ export function createErrorEmbed(
 			iconURL: config.avatarURL,
 		});
 }
+
+export type OptionFunc<T> = (option: T) => T;

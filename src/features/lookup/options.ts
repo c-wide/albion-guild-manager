@@ -11,25 +11,26 @@ export type SearchOptions = {
 };
 
 export function parseOptions(i: ChatInputCommandInteraction): SearchOptions {
-	const entityType = i.options.getString(
-		i18n.t("option.entityType.name", { ns: "common" }),
-		true,
-	) as "player" | "guild" | "alliance";
+	const entityType = i.options.getSubcommand() as
+		| "player"
+		| "guild"
+		| "alliance";
 
 	const serverRegion = i.options.getString(
-		i18n.t("option.serverRegion.name", { ns: "common" }),
+		i18n.t("option.serverRegion.name", { ns: "common", lng: "en" }),
 		true,
 	) as AlbionServerRegion;
 
 	const searchTerm = i.options.getString(
-		i18n.t("option.searchTerm.name", { ns: "common" }),
+		i18n.t("option.searchTerm.name", { ns: "common", lng: "en" }),
 		true,
 	);
 
 	// Default value is false
 	const isPublic =
-		i.options.getBoolean(i18n.t("option.isPublic.name", { ns: "common" })) ??
-		false;
+		i.options.getBoolean(
+			i18n.t("option.isPublic.name", { ns: "common", lng: "en" }),
+		) ?? false;
 
 	return { entityType, serverRegion, searchTerm, isPublic };
 }

@@ -1,7 +1,7 @@
 import type { Alliance, Gathering, GuildInfo, Player, PVE } from "albion-sdk";
 import { EmbedBuilder, type Locale, type APIEmbedField } from "discord.js";
-import type { EntityDetails } from "~/features/search/lookup";
-import type { SearchOptions } from "~/features/search/options";
+import type { EntityDetails } from "~/features/lookup/search";
+import type { SearchOptions } from "~/features/lookup/options";
 import { config } from "~/utils/config";
 import i18n from "~/utils/i18n";
 

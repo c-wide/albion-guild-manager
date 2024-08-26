@@ -1,7 +1,7 @@
 import { utc } from "~/locales/en/commands/utc";
-import { search } from "~/locales/en/commands/search";
+import { lookup } from "~/locales/en/commands/lookup";
 
 export const commands = {
 	utc,
-	search,
+	lookup,
 } as const;

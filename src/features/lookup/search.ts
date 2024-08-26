@@ -1,5 +1,5 @@
 import type { Player, GuildInfo, Alliance } from "albion-sdk";
-import type { EntityType, SearchOptions } from "~/features/search/options";
+import type { EntityType, SearchOptions } from "~/features/lookup/options";
 import type { AlbionServerRegion } from "~/utils/config";
 import { sdks } from "~/utils/misc";
 import i18n from "~/utils/i18n";
