@@ -1,12 +1,12 @@
 import { until } from "@open-draft/until";
 import type { Collection, Guild } from "discord.js";
-import { eq, inArray, isNull } from "drizzle-orm";
+import { eq, isNull } from "drizzle-orm";
 import { db } from "~/database/db";
 import { servers } from "~/database/schema";
 import { config } from "~/utils/config";
 import type { EventHandler, EventName } from "~/utils/event";
 import { logger } from "~/utils/logger";
-import { getGuildDiff, guildIdCache } from "~/utils/misc";
+import { getGuildDiff, getShardId, guildIdCache } from "~/utils/misc";
 
 export const name: EventName = "ready";
 export const once = true;
@@ -18,11 +18,10 @@ export const handler: EventHandler<typeof name> = async (c) => {
 
 	await Promise.all([
 		addNewGuilds(storedGuilds, c.guilds.cache),
-		removeGuilds(storedGuilds, c.guilds.cache),
 		syncGuildSettings(storedGuilds, c.guilds.cache),
 	]);
 
-	logger.info(`Logged in as ${c.user.tag}!`);
+	logger.info({ id: getShardId(c) }, "Shard Ready");
 };
 
 type StoredGuild = typeof servers.$inferSelect;
@@ -43,14 +42,6 @@ async function getStoredGuilds(): Promise<StoredGuild[]> {
 function addGuildsToCache(guilds: { id: string; serverId: string }[]): void {
 	for (const guild of guilds) {
 		guildIdCache.set(guild.serverId, guild.id);
-	}
-}
-
-function removeGuildsFromCache(
-	guilds: { id: string; serverId: string }[],
-): void {
-	for (const guild of guilds) {
-		guildIdCache.delete(guild.serverId);
 	}
 }
 
@@ -91,47 +82,6 @@ async function addNewGuilds(
 
 	logger.info({ guilds: newGuilds }, "Joined guilds while offline");
 	addGuildsToCache(newGuilds);
-}
-
-async function removeGuilds(
-	storedGuilds: StoredGuild[],
-	currentGuilds: Collection<string, Guild>,
-): Promise<void> {
-	const guildsToRemove = storedGuilds.filter(
-		(sg) => !currentGuilds.some((cg) => cg.id === sg.serverId),
-	);
-
-	if (guildsToRemove.length === 0) return;
-
-	const { error } = await until(() => {
-		return db
-			.update(servers)
-			.set({ leftAt: new Date() })
-			.where(
-				inArray(
-					servers.id,
-					guildsToRemove.map((g) => g.id),
-				),
-			);
-	});
-
-	if (error) {
-		logger.fatal(error, "Error while removing guilds");
-		process.exit(1);
-	}
-
-	logger.info(
-		{
-			guilds: guildsToRemove.map((g) => ({
-				id: g.id,
-				serverId: g.serverId,
-				name: g.name,
-			})),
-		},
-		"Removed from guilds while offline",
-	);
-
-	removeGuildsFromCache(guildsToRemove);
 }
 
 async function syncGuildSettings(

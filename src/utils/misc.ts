@@ -1,5 +1,5 @@
 import { AlbionSDK } from "albion-sdk";
-import { EmbedBuilder, type APIEmbedField } from "discord.js";
+import { Client, EmbedBuilder, type APIEmbedField } from "discord.js";
 import { logger } from "~/utils/logger";
 import i18n from "~/utils/i18n";
 import { config } from "./config";
@@ -111,3 +111,14 @@ export function createErrorEmbed(
 }
 
 export type OptionFunc<T> = (option: T) => T;
+
+export function getShardId(client: Client<true>): number {
+	const id = client.shard?.ids[0];
+
+	if (id === undefined) {
+		logger.warn("Unable to extract shard id");
+		return -1;
+	}
+
+	return id;
+}

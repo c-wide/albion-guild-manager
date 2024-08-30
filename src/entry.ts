@@ -1,17 +1,18 @@
-import { Client, GatewayIntentBits } from "discord.js";
-import { env } from "~/utils/env";
-import { registerEvents } from "~/utils/event";
+import path from "node:path";
+import { ShardingManager } from "discord.js";
+import { env } from "./utils/env";
+import { logger } from "./utils/logger";
 
-const client = new Client({
-	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
+const manager = new ShardingManager(path.join(__dirname, "bot.ts"), {
+	token: env.DISCORD_TOKEN,
 });
 
-registerEvents(client);
+manager.on("shardCreate", (shard) =>
+	logger.info({ id: shard.id }, "Shard Launched"),
+);
 
-client.login(env.DISCORD_TOKEN);
+manager.spawn();
 
-// TODO: adapt code for sharding in the future
-// TODO: when I provide translations to commands do I need to put the default lng?
+// TODO: interval to detect guilds left while offline
 // TODO: unhandled rejection and uncaught exceptions
 // TODO: need a good way to remove registered commands
-// TODO: use i18n intl number
