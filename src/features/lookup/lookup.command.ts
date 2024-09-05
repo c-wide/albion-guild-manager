@@ -1,8 +1,8 @@
 import { until } from "@open-draft/until";
 import {
-	SlashCommandBooleanOption,
+	type SlashCommandBooleanOption,
 	SlashCommandBuilder,
-	SlashCommandStringOption,
+	type SlashCommandStringOption,
 } from "discord.js";
 import type { CommandHandler } from "~/utils/command";
 import { config } from "~/utils/config";

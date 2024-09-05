@@ -1,5 +1,5 @@
 import { AlbionSDK } from "albion-sdk";
-import { Client, EmbedBuilder, type APIEmbedField } from "discord.js";
+import { type Client, EmbedBuilder, type APIEmbedField } from "discord.js";
 import { logger } from "~/utils/logger";
 import i18n from "~/utils/i18n";
 import { config } from "./config";
@@ -24,40 +24,24 @@ export function getErrorMessage(error: unknown) {
 	return "Unknown Error";
 }
 
-export const guildIdCache = new Map<string, string>();
+export const Settings = {
+	ServerStatusChannel: "server_status_channel",
+} as const;
+export type SettingsKey = (typeof Settings)[keyof typeof Settings];
 
-export function getGuildId(guildId: string): string | null {
-	const id = guildIdCache.get(guildId);
-	if (id) return id;
-	logger.warn({ guildId }, "Guild not found in cache");
+export type GuildDetails = {
+	id: string;
+	settings: Map<SettingsKey, string>;
+};
+
+// Discord Guild ID -> GuildDetails
+export const guildCache = new Map<string, GuildDetails>();
+
+export function getGuildId(discordGuildId: string): string | null {
+	const guild = guildCache.get(discordGuildId);
+	if (guild) return guild.id;
+	logger.warn({ discordGuildId }, "Guild not found in cache");
 	return null;
-}
-
-export type GuildDiff = { serverId: string; changes: Record<string, unknown> };
-
-export function getGuildDiff(
-	// biome-ignore lint: expected any
-	oldGuild: any,
-	// biome-ignore lint: expected any
-	newGuild: any,
-	changeKeys: readonly string[],
-): GuildDiff | null {
-	const changes: Record<string, unknown> = {};
-
-	for (const key of changeKeys) {
-		const oldValue =
-			typeof oldGuild[key] === "function" ? oldGuild[key]() : oldGuild[key];
-		const newValue =
-			typeof newGuild[key] === "function" ? newGuild[key]() : newGuild[key];
-
-		if (oldValue !== newValue) {
-			changes[key] = newValue;
-		}
-	}
-
-	if (Object.keys(changes).length === 0) return null;
-
-	return { serverId: newGuild.id, changes };
 }
 
 export type GenericEmbedOptions = {

@@ -1,34 +1,51 @@
 import { until } from "@open-draft/until";
 import type { Collection, Guild } from "discord.js";
-import { eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "~/database/db";
-import { servers } from "~/database/schema";
-import { config } from "~/utils/config";
+import { servers, serverSettings } from "~/database/schema";
 import type { EventHandler, EventName } from "~/utils/event";
 import { logger } from "~/utils/logger";
-import { getGuildDiff, getShardId, guildIdCache } from "~/utils/misc";
+import {
+	getShardId,
+	guildCache,
+	type GuildDetails,
+	type SettingsKey,
+} from "~/utils/misc";
 
 export const name: EventName = "ready";
 export const once = true;
 
 export const handler: EventHandler<typeof name> = async (c) => {
-	const storedGuilds = await getStoredGuilds();
+	// Fetch guild details from DB for all guilds this shard will manage
+	const storedGuilds = await getStoredGuilds(c.guilds.cache.map((g) => g.id));
 
-	addGuildsToCache(storedGuilds);
+	// Initial population of guild cache
+	for (const [guildId, guild] of Object.entries(storedGuilds)) {
+		guildCache.set(guildId, guild);
+	}
 
-	await Promise.all([
-		addNewGuilds(storedGuilds, c.guilds.cache),
-		syncGuildSettings(storedGuilds, c.guilds.cache),
-	]);
+	// Add new guilds to the DB and populate cache
+	await addNewGuilds(storedGuilds, c.guilds.cache);
 
-	logger.info({ id: getShardId(c) }, "Shard Ready");
+	logger.info({ shardId: getShardId(c) }, "Shard Ready");
 };
 
-type StoredGuild = typeof servers.$inferSelect;
-
-async function getStoredGuilds(): Promise<StoredGuild[]> {
+async function getStoredGuilds(
+	discordGuildIds: string[],
+): Promise<Record<string, GuildDetails>> {
 	const { error, data: guilds } = await until(() => {
-		return db.select().from(servers).where(isNull(servers.leftAt));
+		return db
+			.select({
+				id: servers.id,
+				guildId: servers.guildId,
+				key: serverSettings.key,
+				value: serverSettings.value,
+			})
+			.from(servers)
+			.where(
+				and(inArray(servers.guildId, discordGuildIds), isNull(servers.leftAt)),
+			)
+			.leftJoin(serverSettings, eq(servers.id, serverSettings.serverId));
 	});
 
 	if (error) {
@@ -36,22 +53,24 @@ async function getStoredGuilds(): Promise<StoredGuild[]> {
 		process.exit(1);
 	}
 
-	return guilds;
-}
+	return guilds.reduce<Record<string, GuildDetails>>((acc, row) => {
+		if (!acc[row.guildId]) {
+			acc[row.guildId] = { id: row.id, settings: new Map() };
+		}
 
-function addGuildsToCache(guilds: { id: string; serverId: string }[]): void {
-	for (const guild of guilds) {
-		guildIdCache.set(guild.serverId, guild.id);
-	}
+		if (row.key) {
+			acc[row.guildId].settings.set(row.key as SettingsKey, row.value ?? "");
+		}
+
+		return acc;
+	}, {});
 }
 
 async function addNewGuilds(
-	storedGuilds: StoredGuild[],
+	storedGuilds: Record<string, GuildDetails>,
 	currentGuilds: Collection<string, Guild>,
 ): Promise<void> {
-	const guildsToAdd = currentGuilds.filter(
-		(cg) => !storedGuilds.some((sg) => sg.serverId === cg.id),
-	);
+	const guildsToAdd = currentGuilds.filter((cg) => !storedGuilds[cg.id]);
 
 	if (guildsToAdd.size === 0) return;
 
@@ -60,18 +79,12 @@ async function addNewGuilds(
 			.insert(servers)
 			.values(
 				guildsToAdd.map((g) => ({
-					serverId: g.id,
-					name: g.name,
-					nameAcronym: g.nameAcronym,
-					iconURL: g.iconURL(),
-					bannerURL: g.bannerURL(),
-					createdAt: g.createdAt,
+					guildId: g.id,
 				})),
 			)
 			.returning({
 				id: servers.id,
-				serverId: servers.serverId,
-				name: servers.name,
+				guildId: servers.guildId,
 			});
 	});
 
@@ -80,59 +93,12 @@ async function addNewGuilds(
 		process.exit(1);
 	}
 
-	logger.info({ guilds: newGuilds }, "Joined guilds while offline");
-	addGuildsToCache(newGuilds);
-}
-
-async function syncGuildSettings(
-	storedGuilds: StoredGuild[],
-	currentGuilds: Collection<string, Guild>,
-): Promise<void> {
-	for (const currentGuild of currentGuilds.values()) {
-		const storedGuild = storedGuilds.find(
-			(sg) => sg.serverId === currentGuild.id,
-		);
-
-		if (!storedGuild) continue;
-
-		const diff = getGuildDiff(
-			storedGuild,
-			currentGuild,
-			config.guildChangeKeys,
-		);
-
-		if (!diff) continue;
-
-		const { changes } = diff;
-
-		const { error } = await until(() => {
-			return db
-				.update(servers)
-				.set(changes)
-				.where(eq(servers.id, storedGuild.id));
+	for (const guild of newGuilds) {
+		guildCache.set(guild.guildId, {
+			id: guild.id,
+			settings: new Map(),
 		});
-
-		if (error) {
-			logger.error(
-				{
-					id: storedGuild.id,
-					serverId: currentGuild.id,
-					serverName: currentGuild.name,
-					changes,
-					error,
-				},
-				"Failed to sync guild settings on startup",
-			);
-		}
-
-		logger.info(
-			{
-				id: storedGuild.id,
-				serverId: currentGuild.id,
-				serverName: currentGuild.name,
-				changes,
-			},
-			"Synced guild settings on startup",
-		);
 	}
+
+	logger.info({ guilds: newGuilds }, "Joined guilds while offline");
 }

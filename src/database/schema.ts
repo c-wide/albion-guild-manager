@@ -9,12 +9,7 @@ import {
 
 export const servers = pgTable("servers", {
 	id: uuid("id").defaultRandom().primaryKey(),
-	serverId: varchar("server_id", { length: 20 }).notNull(),
-	name: text("name").notNull(),
-	nameAcronym: text("name_acronym").notNull(),
-	iconURL: text("icon_url"),
-	bannerURL: text("banner_url"),
-	createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+	guildId: varchar("guild_id", { length: 20 }).notNull(),
 	joinedAt: timestamp("joined_at", { withTimezone: true })
 		.defaultNow()
 		.notNull(),
