@@ -8,7 +8,11 @@ import { getLastUsage, isOnCooldown, setCooldown } from "~/utils/cooldown";
 import type { EventHandler, EventName } from "~/utils/event";
 import i18n from "~/utils/i18n";
 import { logger } from "~/utils/logger";
-import { createErrorEmbed, createGenericEmbed, getGuildId } from "~/utils/misc";
+import {
+	createErrorEmbed,
+	createGenericEmbed,
+	getServerId,
+} from "~/utils/misc";
 
 export const name: EventName = "interactionCreate";
 export const once = false;
@@ -31,7 +35,7 @@ export const handler: EventHandler<typeof name> = async (i) => {
 			{
 				commandName: i.isCommand() && i.commandName,
 				userId: i.user.id,
-				serverId: i.guildId && getGuildId(i.guildId),
+				serverId: i.guildId && getServerId(i.guildId),
 			},
 			"Uncaught command interaction error",
 		);
@@ -48,7 +52,7 @@ async function chatInputCommandHandler(
 			{
 				commandName: i.commandName,
 				userId: i.user.id,
-				serverId: i.guildId && getGuildId(i.guildId),
+				serverId: i.guildId && getServerId(i.guildId),
 			},
 			"Invalid command",
 		);
@@ -101,7 +105,7 @@ async function chatInputCommandHandler(
 			{
 				commandName: i.commandName,
 				userId: i.user.id,
-				serverId: i.guildId && getGuildId(i.guildId),
+				serverId: i.guildId && getServerId(i.guildId),
 			},
 			"Command executed",
 		);
@@ -113,7 +117,7 @@ async function chatInputCommandHandler(
 				error: e,
 				commandName: i.commandName,
 				userId: i.user.id,
-				serverId: i.guildId && getGuildId(i.guildId),
+				serverId: i.guildId && getServerId(i.guildId),
 			},
 			"Error while handling command",
 		);
@@ -147,7 +151,7 @@ async function autocompleteHandler(i: AutocompleteInteraction): Promise<void> {
 			{
 				commandName: i.commandName,
 				userId: i.user.id,
-				serverId: i.guildId && getGuildId(i.guildId),
+				serverId: i.guildId && getServerId(i.guildId),
 			},
 			"Invalid command",
 		);

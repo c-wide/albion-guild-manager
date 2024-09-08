@@ -1,19 +1,19 @@
 import { until } from "@open-draft/until";
 import { eq } from "drizzle-orm";
 import { db } from "~/database/db";
-import { servers, serverSettings } from "~/database/schema";
+import { serverSettings, servers } from "~/database/schema";
 import type { EventHandler, EventName } from "~/utils/event";
 import { logger } from "~/utils/logger";
-import { getGuildId, guildCache } from "~/utils/misc";
+import { getServerId, guildCache } from "~/utils/misc";
 
 export const name: EventName = "guildDelete";
 export const once = false;
 
 export const handler: EventHandler<typeof name> = async (g) => {
-	const id = getGuildId(g.id);
+	const id = getServerId(g.id);
 	if (!id) {
 		logger.error(
-			{ serverId: g.id, error: "Guild ID not found in cache" },
+			{ guildId: g.id, error: "Guild ID not found in cache" },
 			"Failed to update database on guild leave",
 		);
 		return;
@@ -22,13 +22,13 @@ export const handler: EventHandler<typeof name> = async (g) => {
 	const { error } = await until(() => softDeleteGuild(id));
 	if (error) {
 		logger.error(
-			{ id, serverId: g.id, error },
+			{ serverId: id, guildId: g.id, error },
 			"Failed to update database on guild leave",
 		);
 		return;
 	}
 
-	logger.info({ id, serverId: g.id }, "Left guild");
+	logger.info({ serverId: id, guildId: g.id }, "Left guild");
 	guildCache.delete(g.id);
 };
 

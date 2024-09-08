@@ -1,7 +1,7 @@
 import { AlbionSDK } from "albion-sdk";
-import { type Client, EmbedBuilder, type APIEmbedField } from "discord.js";
-import { logger } from "~/utils/logger";
+import { type APIEmbedField, type Client, EmbedBuilder } from "discord.js";
 import i18n from "~/utils/i18n";
+import { logger } from "~/utils/logger";
 import { config } from "./config";
 
 export const sdks = {
@@ -37,10 +37,10 @@ export type GuildDetails = {
 // Discord Guild ID -> GuildDetails
 export const guildCache = new Map<string, GuildDetails>();
 
-export function getGuildId(discordGuildId: string): string | null {
-	const guild = guildCache.get(discordGuildId);
+export function getServerId(guildId: string): string | null {
+	const guild = guildCache.get(guildId);
 	if (guild) return guild.id;
-	logger.warn({ discordGuildId }, "Guild not found in cache");
+	logger.warn({ guildId }, "Guild not found in cache");
 	return null;
 }
 
@@ -49,6 +49,7 @@ export type GenericEmbedOptions = {
 	description: string;
 	fields?: APIEmbedField[];
 	color?: `#${string}`;
+	disableFooter?: boolean;
 };
 
 export function createGenericEmbed({
@@ -56,15 +57,19 @@ export function createGenericEmbed({
 	description,
 	fields,
 	color,
+	disableFooter,
 }: GenericEmbedOptions): EmbedBuilder {
 	const embed = new EmbedBuilder()
 		.setTitle(title)
 		.setDescription(description)
-		.setColor(color ?? "#1C1C1C")
-		.setFooter({
+		.setColor(color ?? "#1C1C1C");
+
+	if (!disableFooter) {
+		embed.setFooter({
 			text: config.botName,
 			iconURL: config.avatarURL,
 		});
+	}
 
 	if (fields) {
 		embed.addFields(fields);

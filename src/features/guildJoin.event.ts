@@ -1,7 +1,7 @@
 import { until } from "@open-draft/until";
 import { and, eq, isNull } from "drizzle-orm";
 import { db } from "~/database/db";
-import { servers, serverSettings } from "~/database/schema";
+import { serverSettings, servers } from "~/database/schema";
 import type { EventHandler, EventName } from "~/utils/event";
 import { logger } from "~/utils/logger";
 import { guildCache } from "~/utils/misc";
@@ -21,7 +21,7 @@ export const handler: EventHandler<typeof name> = async (g) => {
 			// If it does, warn and soft delete
 			if (server) {
 				logger.warn(
-					{ id: server.id, serverId: g.id },
+					{ serverId: server.id, guildId: g.id },
 					"Server already exists in database",
 				);
 
@@ -51,13 +51,13 @@ export const handler: EventHandler<typeof name> = async (g) => {
 
 	if (error) {
 		logger.error(
-			{ serverId: g.id, error },
+			{ guildId: g.id, error },
 			"Failed to insert new server into database",
 		);
 		return;
 	}
 
-	logger.info({ id: data, serverId: g.id }, "Guild joined");
+	logger.info({ serverId: data, guildId: g.id }, "Guild joined");
 
 	guildCache.set(g.id, {
 		id: data,

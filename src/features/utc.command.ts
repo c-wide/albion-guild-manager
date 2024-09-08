@@ -1,6 +1,7 @@
 import { SlashCommandBuilder } from "discord.js";
 import type { CommandHandler } from "~/utils/command";
 import i18n from "~/utils/i18n";
+import { createGenericEmbed } from "~/utils/misc";
 
 export const cooldown = 5;
 
@@ -10,11 +11,18 @@ export const builder = new SlashCommandBuilder()
 
 export const handler: CommandHandler = async (i) => {
 	await i.reply({
-		content: i18n.t("utc.res", {
-			utcTime: new Date().toUTCString().split(" ")[4],
-			ns: "commands",
-			lng: i.locale,
-		}),
+		content: "",
 		ephemeral: true,
+		embeds: [
+			createGenericEmbed({
+				title: " ",
+				description: i18n.t("utc.res", {
+					utcTime: new Date().toUTCString().split(" ")[4],
+					ns: "commands",
+					lng: i.locale,
+				}),
+				disableFooter: true,
+			}),
+		],
 	});
 };
