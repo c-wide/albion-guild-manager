@@ -1,8 +1,8 @@
 import { AlbionSDK } from "albion-sdk";
 import { type APIEmbedField, type Client, EmbedBuilder } from "discord.js";
+import { config } from "~/utils/config";
 import i18n from "~/utils/i18n";
 import { logger } from "~/utils/logger";
-import { config } from "./config";
 
 export const sdks = {
 	Americas: new AlbionSDK("Americas"),
