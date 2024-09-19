@@ -59,7 +59,7 @@ async function getStoredGuilds(
 		}
 
 		if (row.key) {
-			acc[row.guildId].settings.set(row.key as SettingsKey, row.value ?? "");
+			acc[row.guildId].settings.set(row.key as SettingsKey, row.value);
 		}
 
 		return acc;

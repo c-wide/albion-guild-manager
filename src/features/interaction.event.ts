@@ -35,7 +35,7 @@ export const handler: EventHandler<typeof name> = async (i) => {
 			{
 				commandName: i.isCommand() && i.commandName,
 				userId: i.user.id,
-				serverId: i.guildId && getServerId(i.guildId),
+				serverId: getServerId(i.guildId),
 			},
 			"Uncaught command interaction error",
 		);
@@ -52,7 +52,7 @@ async function chatInputCommandHandler(
 			{
 				commandName: i.commandName,
 				userId: i.user.id,
-				serverId: i.guildId && getServerId(i.guildId),
+				serverId: getServerId(i.guildId),
 			},
 			"Invalid command",
 		);
@@ -105,7 +105,7 @@ async function chatInputCommandHandler(
 			{
 				commandName: i.commandName,
 				userId: i.user.id,
-				serverId: i.guildId && getServerId(i.guildId),
+				serverId: getServerId(i.guildId),
 			},
 			"Command executed",
 		);
@@ -117,7 +117,7 @@ async function chatInputCommandHandler(
 				error: e,
 				commandName: i.commandName,
 				userId: i.user.id,
-				serverId: i.guildId && getServerId(i.guildId),
+				serverId: getServerId(i.guildId),
 			},
 			"Error while handling command",
 		);
@@ -151,7 +151,7 @@ async function autocompleteHandler(i: AutocompleteInteraction): Promise<void> {
 			{
 				commandName: i.commandName,
 				userId: i.user.id,
-				serverId: i.guildId && getServerId(i.guildId),
+				serverId: getServerId(i.guildId),
 			},
 			"Invalid command",
 		);

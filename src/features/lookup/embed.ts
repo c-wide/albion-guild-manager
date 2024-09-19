@@ -2,10 +2,8 @@ import type { Alliance, Gathering, GuildInfo, Player, PVE } from "albion-sdk";
 import { EmbedBuilder, type Locale, type APIEmbedField } from "discord.js";
 import type { EntityDetails } from "~/features/lookup/search";
 import type { SearchOptions } from "~/features/lookup/options";
-import { config } from "~/utils/config";
 import i18n from "~/utils/i18n";
-
-const defaultEmbedColor = "#248eff";
+import { config } from "~/utils/config";
 
 const linkMap = {
 	albionRegistry: {
@@ -225,11 +223,7 @@ function createPlayerEmbed(
 	return new EmbedBuilder()
 		.setTitle(i18n.t("phrases.playerInfo", { ns: "common", lng }))
 		.addFields(fields)
-		.setColor(defaultEmbedColor)
-		.setFooter({
-			text: config.botName,
-			iconURL: config.avatarURL,
-		});
+		.setColor(config.colors.info);
 }
 
 function createGuildEmbed(
@@ -282,11 +276,7 @@ function createGuildEmbed(
 	return new EmbedBuilder()
 		.setTitle(i18n.t("phrases.guildInfo", { ns: "common", lng }))
 		.addFields(fields)
-		.setColor(defaultEmbedColor)
-		.setFooter({
-			text: config.botName,
-			iconURL: config.avatarURL,
-		});
+		.setColor(config.colors.info);
 }
 
 function createAllianceEmbed(
@@ -337,9 +327,5 @@ function createAllianceEmbed(
 	return new EmbedBuilder()
 		.setTitle(i18n.t("phrases.allyInfo", { ns: "common", lng }))
 		.addFields(fields)
-		.setColor(defaultEmbedColor)
-		.setFooter({
-			text: config.botName,
-			iconURL: config.avatarURL,
-		});
+		.setColor(config.colors.info);
 }

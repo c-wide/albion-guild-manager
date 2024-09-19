@@ -15,11 +15,11 @@ import i18n from "~/utils/i18n";
 import {
 	createErrorEmbed,
 	createGenericEmbed,
+	getServerId,
 	type OptionFunc,
 } from "~/utils/misc";
 
 // TODO: if only 1 result, just search for it
-// TODO: add name locaziations to command builder
 
 export const cooldown = 10;
 
@@ -107,6 +107,11 @@ export const handler: CommandHandler = async (i) => {
 	const options = parseOptions(i);
 	const { entityType, searchTerm, serverRegion, isPublic } = options;
 
+	logger.info(
+		{ serverId: getServerId(i.guildId), userId: i.user.id, ...options },
+		"Lookup command details",
+	);
+
 	// Initial deferral to prevent timeouts
 	await i.deferReply({ ephemeral: !isPublic });
 
@@ -183,7 +188,7 @@ export const handler: CommandHandler = async (i) => {
 						ns: "common",
 						lng: i.locale,
 					}),
-					color: "#FF5F15",
+					color: config.colors.warning,
 				}),
 			],
 		});

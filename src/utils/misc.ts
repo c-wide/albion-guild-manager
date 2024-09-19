@@ -25,19 +25,22 @@ export function getErrorMessage(error: unknown) {
 }
 
 export const Settings = {
+	ManagerRoles: "manager_roles",
+	ManagerUsers: "manager_users",
 	ServerStatusChannel: "server_status_channel",
 } as const;
 export type SettingsKey = (typeof Settings)[keyof typeof Settings];
 
 export type GuildDetails = {
 	id: string;
-	settings: Map<SettingsKey, string>;
+	settings: Map<SettingsKey, unknown>;
 };
 
 // Discord Guild ID -> GuildDetails
 export const guildCache = new Map<string, GuildDetails>();
 
-export function getServerId(guildId: string): string | null {
+export function getServerId(guildId: string | null | undefined): string | null {
+	if (!guildId) return null;
 	const guild = guildCache.get(guildId);
 	if (guild) return guild.id;
 	logger.warn({ guildId }, "Guild not found in cache");
@@ -49,7 +52,6 @@ export type GenericEmbedOptions = {
 	description: string;
 	fields?: APIEmbedField[];
 	color?: `#${string}`;
-	disableFooter?: boolean;
 };
 
 export function createGenericEmbed({
@@ -57,19 +59,11 @@ export function createGenericEmbed({
 	description,
 	fields,
 	color,
-	disableFooter,
 }: GenericEmbedOptions): EmbedBuilder {
 	const embed = new EmbedBuilder()
 		.setTitle(title)
 		.setDescription(description)
-		.setColor(color ?? "#1C1C1C");
-
-	if (!disableFooter) {
-		embed.setFooter({
-			text: config.botName,
-			iconURL: config.avatarURL,
-		});
-	}
+		.setColor(color ?? config.colors.default);
 
 	if (fields) {
 		embed.addFields(fields);
@@ -92,11 +86,7 @@ export function createErrorEmbed(
 				interpolation: { escapeValue: false },
 			})}`,
 		)
-		.setColor("#ff3838")
-		.setFooter({
-			text: config.botName,
-			iconURL: config.avatarURL,
-		});
+		.setColor(config.colors.error);
 }
 
 export type OptionFunc<T> = (option: T) => T;

@@ -21,7 +21,6 @@ export const handler: CommandHandler = async (i) => {
 					ns: "commands",
 					lng: i.locale,
 				}),
-				disableFooter: true,
 			}),
 		],
 	});

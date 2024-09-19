@@ -13,7 +13,7 @@ export const handler: EventHandler<typeof name> = async (g) => {
 	const id = getServerId(g.id);
 	if (!id) {
 		logger.error(
-			{ guildId: g.id, error: "Guild ID not found in cache" },
+			{ guildId: g.id, error: "Server ID not found in cache" },
 			"Failed to update database on guild leave",
 		);
 		return;
