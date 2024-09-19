@@ -1,4 +1,5 @@
 import {
+	jsonb,
 	pgTable,
 	text,
 	timestamp,
@@ -24,7 +25,7 @@ export const serverSettings = pgTable(
 			.notNull()
 			.references(() => servers.id),
 		key: text("key").notNull(),
-		value: text("value").notNull(),
+		value: jsonb("value").notNull(),
 		createdAt: timestamp("created_at", { withTimezone: true })
 			.defaultNow()
 			.notNull(),
