@@ -15,21 +15,21 @@
 		"studio": "drizzle-kit studio --config=src/database/drizzle.config.ts"
 	},
 	"dependencies": {
-		"@axiomhq/pino": "^1.0.0",
+		"@axiomhq/pino": "^1.1.1",
 		"@open-draft/until": "^2.1.0",
 		"albion-sdk": "^1.0.0",
-		"discord.js": "^14.15.3",
-		"drizzle-orm": "^0.31.2",
-		"i18next": "^23.11.5",
-		"pino": "^9.2.0",
+		"discord.js": "^14.16.1",
+		"drizzle-orm": "0.33.0",
+		"i18next": "^23.15.1",
+		"pino": "^9.4.0",
 		"postgres": "^3.4.4",
 		"zod": "^3.23.8"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.8.3",
 		"@types/bun": "latest",
-		"drizzle-kit": "^0.22.8",
-		"pino-pretty": "^11.2.1",
-		"typescript": "^5.5.3"
+		"drizzle-kit": "0.24.2",
+		"pino-pretty": "^11.2.2",
+		"typescript": "^5.6.2"
 	}
 }
