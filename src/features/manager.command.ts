@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { until } from "@open-draft/until";
 import {
-	ChatInputCommandInteraction,
+	type ChatInputCommandInteraction,
 	InteractionContextType,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
@@ -9,42 +9,40 @@ import {
 import { db } from "~/database/db";
 import { serverSettings } from "~/database/schema";
 import type { CommandHandler } from "~/utils/command";
+import { config } from "~/utils/config";
+import i18n from "~/utils/i18n";
+import { logger } from "~/utils/logger";
 import {
+	Settings,
 	createErrorEmbed,
 	createGenericEmbed,
 	getServerId,
 	guildCache,
-	Settings,
 } from "~/utils/misc";
-import { config } from "~/utils/config";
-import { logger } from "~/utils/logger";
-import i18n from "~/utils/i18n";
 
 export const cooldown = 5;
 
 export const builder = new SlashCommandBuilder()
-	.setName(i18n.t("managers.name", { ns: "commands", locale: "en" }))
-	.setDescription(i18n.t("managers.desc", { ns: "commands", locale: "en" }))
+	.setName(i18n.t("managers.name", { ns: "commands", lng: "en" }))
+	.setDescription(i18n.t("managers.desc", { ns: "commands", lng: "en" }))
 	.addSubcommandGroup((group) =>
 		group
-			.setName(
-				i18n.t("managers.group.add.name", { ns: "commands", locale: "en" }),
-			)
+			.setName(i18n.t("managers.group.add.name", { ns: "commands", lng: "en" }))
 			.setDescription(
-				i18n.t("managers.group.add.desc", { ns: "commands", locale: "en" }),
+				i18n.t("managers.group.add.desc", { ns: "commands", lng: "en" }),
 			)
 			.addSubcommand((subcommand) =>
 				subcommand
 					.setName(
 						i18n.t("managers.group.add.subcommands.role.name", {
 							ns: "commands",
-							locale: "en",
+							lng: "en",
 						}),
 					)
 					.setDescription(
 						i18n.t("managers.group.add.subcommands.role.desc", {
 							ns: "commands",
-							locale: "en",
+							lng: "en",
 						}),
 					)
 					.addRoleOption((option) =>
@@ -52,13 +50,13 @@ export const builder = new SlashCommandBuilder()
 							.setName(
 								i18n.t(
 									"managers.group.add.subcommands.role.options.role.name",
-									{ ns: "commands", locale: "en" },
+									{ ns: "commands", lng: "en" },
 								),
 							)
 							.setDescription(
 								i18n.t(
 									"managers.group.add.subcommands.role.options.role.desc",
-									{ ns: "commands", locale: "en" },
+									{ ns: "commands", lng: "en" },
 								),
 							)
 							.setRequired(true),
@@ -69,13 +67,13 @@ export const builder = new SlashCommandBuilder()
 					.setName(
 						i18n.t("managers.group.add.subcommands.user.name", {
 							ns: "commands",
-							locale: "en",
+							lng: "en",
 						}),
 					)
 					.setDescription(
 						i18n.t("managers.group.add.subcommands.user.desc", {
 							ns: "commands",
-							locale: "en",
+							lng: "en",
 						}),
 					)
 					.addUserOption((option) =>
@@ -83,13 +81,13 @@ export const builder = new SlashCommandBuilder()
 							.setName(
 								i18n.t(
 									"managers.group.add.subcommands.user.options.user.name",
-									{ ns: "commands", locale: "en" },
+									{ ns: "commands", lng: "en" },
 								),
 							)
 							.setDescription(
 								i18n.t(
 									"managers.group.add.subcommands.user.options.user.desc",
-									{ ns: "commands", locale: "en" },
+									{ ns: "commands", lng: "en" },
 								),
 							)
 							.setRequired(true),
@@ -99,23 +97,23 @@ export const builder = new SlashCommandBuilder()
 	.addSubcommandGroup((group) =>
 		group
 			.setName(
-				i18n.t("managers.group.remove.name", { ns: "commands", locale: "en" }),
+				i18n.t("managers.group.remove.name", { ns: "commands", lng: "en" }),
 			)
 			.setDescription(
-				i18n.t("managers.group.remove.desc", { ns: "commands", locale: "en" }),
+				i18n.t("managers.group.remove.desc", { ns: "commands", lng: "en" }),
 			)
 			.addSubcommand((subcommand) =>
 				subcommand
 					.setName(
 						i18n.t("managers.group.remove.subcommands.role.name", {
 							ns: "commands",
-							locale: "en",
+							lng: "en",
 						}),
 					)
 					.setDescription(
 						i18n.t("managers.group.remove.subcommands.role.desc", {
 							ns: "commands",
-							locale: "en",
+							lng: "en",
 						}),
 					)
 					.addRoleOption((option) =>
@@ -123,13 +121,13 @@ export const builder = new SlashCommandBuilder()
 							.setName(
 								i18n.t(
 									"managers.group.remove.subcommands.role.options.role.name",
-									{ ns: "commands", locale: "en" },
+									{ ns: "commands", lng: "en" },
 								),
 							)
 							.setDescription(
 								i18n.t(
 									"managers.group.remove.subcommands.role.options.role.desc",
-									{ ns: "commands", locale: "en" },
+									{ ns: "commands", lng: "en" },
 								),
 							)
 							.setRequired(true),
@@ -140,13 +138,13 @@ export const builder = new SlashCommandBuilder()
 					.setName(
 						i18n.t("managers.group.remove.subcommands.user.name", {
 							ns: "commands",
-							locale: "en",
+							lng: "en",
 						}),
 					)
 					.setDescription(
 						i18n.t("managers.group.remove.subcommands.user.desc", {
 							ns: "commands",
-							locale: "en",
+							lng: "en",
 						}),
 					)
 					.addUserOption((option) =>
@@ -154,13 +152,13 @@ export const builder = new SlashCommandBuilder()
 							.setName(
 								i18n.t(
 									"managers.group.remove.subcommands.user.options.user.name",
-									{ ns: "commands", locale: "en" },
+									{ ns: "commands", lng: "en" },
 								),
 							)
 							.setDescription(
 								i18n.t(
 									"managers.group.remove.subcommands.user.options.user.desc",
-									{ ns: "commands", locale: "en" },
+									{ ns: "commands", lng: "en" },
 								),
 							)
 							.setRequired(true),
@@ -172,13 +170,13 @@ export const builder = new SlashCommandBuilder()
 			.setName(
 				i18n.t("managers.subcommands.view.name", {
 					ns: "commands",
-					locale: "en",
+					lng: "en",
 				}),
 			)
 			.setDescription(
 				i18n.t("managers.subcommands.view.desc", {
 					ns: "commands",
-					locale: "en",
+					lng: "en",
 				}),
 			),
 	)
@@ -220,7 +218,7 @@ async function alterManagers(i: ChatInputCommandInteraction): Promise<void> {
 						description: i18n.t(`managers.responses.${command}AlreadyManager`, {
 							target: targetId,
 							ns: "commands",
-							locale: i.locale,
+							lng: i.locale,
 						}),
 						color: config.colors.warning,
 					}),
@@ -242,7 +240,7 @@ async function alterManagers(i: ChatInputCommandInteraction): Promise<void> {
 						description: i18n.t(`managers.responses.${command}NotManager`, {
 							target: targetId,
 							ns: "commands",
-							locale: i.locale,
+							lng: i.locale,
 						}),
 						color: config.colors.warning,
 					}),
@@ -282,7 +280,7 @@ async function alterManagers(i: ChatInputCommandInteraction): Promise<void> {
 				title: " ",
 				description: i18n.t(
 					`managers.responses.${group}${command === "role" ? "Role" : "User"}`,
-					{ target: targetId, ns: "commands", locale: i.locale },
+					{ target: targetId, ns: "commands", lng: i.locale },
 				),
 				color: config.colors.success,
 			}),
@@ -313,7 +311,7 @@ async function viewManagers(i: ChatInputCommandInteraction): Promise<void> {
 					title: " ",
 					description: i18n.t("managers.responses.noManagers", {
 						ns: "commands",
-						locale: i.locale,
+						lng: i.locale,
 					}),
 					color: config.colors.info,
 				}),
@@ -329,20 +327,20 @@ async function viewManagers(i: ChatInputCommandInteraction): Promise<void> {
 			createGenericEmbed({
 				title: i18n.t("managers.embeds.botManagers.title", {
 					ns: "commands",
-					locale: i.locale,
+					lng: i.locale,
 				}),
 				description: " ",
 				fields: [
 					{
 						name: i18n.t("managers.embeds.botManagers.fields.roles.name", {
 							ns: "commands",
-							locale: i.locale,
+							lng: i.locale,
 						}),
 						value:
 							roles.length === 0
 								? i18n.t("managers.embeds.common.na", {
 										ns: "commands",
-										locale: i.locale,
+										lng: i.locale,
 									})
 								: roles.map((role) => `<@&${role}>`).join("\n"),
 						inline: true,
@@ -350,13 +348,13 @@ async function viewManagers(i: ChatInputCommandInteraction): Promise<void> {
 					{
 						name: i18n.t("managers.embeds.botManagers.fields.users.name", {
 							ns: "commands",
-							locale: i.locale,
+							lng: i.locale,
 						}),
 						value:
 							users.length === 0
 								? i18n.t("managers.embeds.common.na", {
 										ns: "commands",
-										locale: i.locale,
+										lng: i.locale,
 									})
 								: users.map((user) => `<@${user}>`).join("\n"),
 						inline: true,
@@ -402,7 +400,7 @@ export const handler: CommandHandler = async (i) => {
 					title: " ",
 					description: i18n.t("managers.responses.noPermission", {
 						ns: "commands",
-						locale: i.locale,
+						lng: i.locale,
 					}),
 					color: config.colors.warning,
 				}),
@@ -429,7 +427,7 @@ export const handler: CommandHandler = async (i) => {
 					createErrorEmbed(
 						i18n.t("managers.responses.viewErr", {
 							ns: "commands",
-							locale: i.locale,
+							lng: i.locale,
 						}),
 						i.locale,
 					),
@@ -453,7 +451,7 @@ export const handler: CommandHandler = async (i) => {
 				createErrorEmbed(
 					i18n.t("managers.responses.updateErr", {
 						ns: "commands",
-						locale: i.locale,
+						lng: i.locale,
 					}),
 					i.locale,
 				),
