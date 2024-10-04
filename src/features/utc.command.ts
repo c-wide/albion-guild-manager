@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from "discord.js";
 import type { CommandHandler } from "~/utils/command";
+import { config } from "~/utils/config";
 import i18n from "~/utils/i18n";
 import { createGenericEmbed } from "~/utils/misc";
 
@@ -21,6 +22,7 @@ export const handler: CommandHandler = async (i) => {
 					ns: "commands",
 					lng: i.locale,
 				}),
+				color: config.colors.info,
 			}),
 		],
 	});
