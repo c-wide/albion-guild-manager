@@ -1,9 +1,9 @@
-import type { Player, GuildInfo, Alliance } from "albion-sdk";
+import type { Alliance, GuildInfo, Player } from "albion-sdk";
+import type { Locale } from "discord.js";
 import type { EntityType, SearchOptions } from "~/features/lookup/options";
 import type { AlbionServerRegion } from "~/utils/config";
-import { sdks } from "~/utils/misc";
 import i18n from "~/utils/i18n";
-import type { Locale } from "discord.js";
+import { sdks } from "~/utils/misc";
 
 export type SearchResult = {
 	label: string;
@@ -38,7 +38,7 @@ export async function genericSearch(
 		}
 		case "alliance": {
 			const res = await fetch(
-				`https://registry-api.albion.tools/search/entities/${serverRegion.toLowerCase()}?q=${searchTerm}`,
+				`https://albion-registry-api.fly.dev/search/entities/${serverRegion.toLowerCase()}?q=${searchTerm}`,
 			);
 
 			if (!res.ok) {

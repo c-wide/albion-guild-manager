@@ -1,14 +1,14 @@
-import type { Alliance, Gathering, GuildInfo, Player, PVE } from "albion-sdk";
-import { EmbedBuilder, type Locale, type APIEmbedField } from "discord.js";
-import type { EntityDetails } from "~/features/lookup/search";
+import type { Alliance, Gathering, GuildInfo, PVE, Player } from "albion-sdk";
+import { type APIEmbedField, EmbedBuilder, type Locale } from "discord.js";
 import type { SearchOptions } from "~/features/lookup/options";
-import i18n from "~/utils/i18n";
+import type { EntityDetails } from "~/features/lookup/search";
 import { config } from "~/utils/config";
+import i18n from "~/utils/i18n";
 
 const linkMap = {
 	albionRegistry: {
 		name: "Albion Registry",
-		url: "https://registry.albion.tools",
+		url: "https://albion-registry-website.vercel.app",
 	},
 	albionbb: {
 		name: "albionbb",
