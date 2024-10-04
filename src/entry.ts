@@ -1,5 +1,6 @@
 import path from "node:path";
 import { ShardingManager } from "discord.js";
+import { startServerStatusInterval } from "~/features/server-status/status";
 import { env } from "~/utils/env";
 import { logger } from "~/utils/logger";
 
@@ -13,9 +14,9 @@ manager.on("shardCreate", (shard) =>
 
 await manager.spawn();
 
-// TODO: refactor utc and lookup commands to use normal strings inside handler
+startServerStatusInterval(manager);
+
 // TODO: add name localizaitons to command builders
-// TODO: should I be responding in a users/servers locale? should I add override option to commands?
 // TODO: eventually redo lookup i18n to match new format
 // TODO: unhandled rejection and uncaught exceptions
 // TODO: need a good way to remove registered commands while developing

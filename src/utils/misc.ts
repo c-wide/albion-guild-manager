@@ -1,5 +1,12 @@
 import { AlbionSDK } from "albion-sdk";
-import { type APIEmbedField, type Client, EmbedBuilder } from "discord.js";
+import {
+	type APIEmbedField,
+	type APIInteractionGuildMember,
+	type Client,
+	EmbedBuilder,
+	GuildMember,
+	PermissionFlagsBits,
+} from "discord.js";
 import { config } from "~/utils/config";
 import i18n from "~/utils/i18n";
 import { logger } from "~/utils/logger";
@@ -28,6 +35,8 @@ export const Settings = {
 	ManagerRoles: "manager_roles",
 	ManagerUsers: "manager_users",
 	ServerStatusChannel: "server_status_channel",
+	ServerStatusRegions: "server_status_regions",
+	ServerStatusToggle: "server_status_toggle",
 } as const;
 export type SettingsKey = (typeof Settings)[keyof typeof Settings];
 
@@ -45,6 +54,38 @@ export function getServerId(guildId: string | null | undefined): string | null {
 	if (guild) return guild.id;
 	logger.warn({ guildId }, "Guild not found in cache");
 	return null;
+}
+
+export function isAdminOrManager(
+	member: GuildMember | APIInteractionGuildMember | null,
+	cache: GuildDetails,
+): boolean {
+	// If you didnt give me a member, I can't check their permissions
+	if (member === null) return false;
+
+	// smile
+	if (typeof member.permissions === "string") return false;
+	if (Array.isArray(member.roles)) return false;
+
+	// Check if the member has ManageGuild permission
+	if (member.permissions?.has(PermissionFlagsBits.ManageGuild)) return true;
+
+	// Extract role and user manager settings
+	const managerRoles = (cache.settings.get(Settings.ManagerRoles) ??
+		[]) as string[];
+	const managerUsers = (cache.settings.get(Settings.ManagerUsers) ??
+		[]) as string[];
+
+	// Check if member/user (?) is a manager
+	if (managerUsers.includes(member.user.id)) return true;
+
+	// Check if member/user (?) has a manager role
+	const memberRoles = member.roles.cache;
+	if (managerRoles.some((roleId) => memberRoles.has(roleId))) {
+		return true;
+	}
+
+	return false;
 }
 
 export type GenericEmbedOptions = {
