@@ -11,9 +11,11 @@
 				"noUnusedImports": "error",
 				"noUnusedVariables": "error"
 			},
+			"complexity": {
+				"noForEach": "off"
+			},
 			"style": {
-				"useConsistentArrayType": "error",
-				"useForOf": "error"
+				"useConsistentArrayType": "error"
 			},
 			"suspicious": {
 				"useAwait": "error"

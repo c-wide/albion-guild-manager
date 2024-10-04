@@ -1,6 +1,6 @@
-import type { Client, ClientEvents } from "discord.js";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
+import type { Client, ClientEvents } from "discord.js";
 import { z } from "zod";
 
 export type EventName = keyof ClientEvents;

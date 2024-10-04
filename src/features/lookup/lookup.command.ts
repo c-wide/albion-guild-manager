@@ -4,19 +4,19 @@ import {
 	SlashCommandBuilder,
 	type SlashCommandStringOption,
 } from "discord.js";
-import type { CommandHandler } from "~/utils/command";
-import { config } from "~/utils/config";
-import { logger } from "~/utils/logger";
+import { createEmbed } from "~/features/lookup/embed";
 import { parseOptions } from "~/features/lookup/options";
 import { genericSearch, getEntityDetails } from "~/features/lookup/search";
 import { sendSelectMenu } from "~/features/lookup/select";
-import { createEmbed } from "~/features/lookup/embed";
+import type { CommandHandler } from "~/utils/command";
+import { config } from "~/utils/config";
 import i18n from "~/utils/i18n";
+import { logger } from "~/utils/logger";
 import {
+	type OptionFunc,
 	createErrorEmbed,
 	createGenericEmbed,
 	getServerId,
-	type OptionFunc,
 } from "~/utils/misc";
 
 // TODO: if only 1 result, just search for it

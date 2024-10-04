@@ -1,12 +1,12 @@
 import {
 	ActionRowBuilder,
-	StringSelectMenuBuilder,
-	StringSelectMenuOptionBuilder,
 	type ChatInputCommandInteraction,
 	type Message,
+	StringSelectMenuBuilder,
+	StringSelectMenuOptionBuilder,
 } from "discord.js";
-import type { SearchResult } from "~/features/lookup/search";
 import type { SearchOptions } from "~/features/lookup/options";
+import type { SearchResult } from "~/features/lookup/search";
 import i18n from "~/utils/i18n";
 
 export async function sendSelectMenu(

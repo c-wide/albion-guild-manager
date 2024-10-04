@@ -1,11 +1,11 @@
-import {
-	Collection,
-	type SlashCommandBuilder,
-	type AutocompleteInteraction,
-	type ChatInputCommandInteraction,
-} from "discord.js";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
+import {
+	type AutocompleteInteraction,
+	type ChatInputCommandInteraction,
+	Collection,
+	type SlashCommandBuilder,
+} from "discord.js";
 import { z } from "zod";
 
 export type CommandHandler = (
