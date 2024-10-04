@@ -2,14 +2,14 @@ import { until } from "@open-draft/until";
 import type { Collection, Guild } from "discord.js";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "~/database/db";
-import { servers, serverSettings } from "~/database/schema";
+import { serverSettings, servers } from "~/database/schema";
 import type { EventHandler, EventName } from "~/utils/event";
 import { logger } from "~/utils/logger";
 import {
-	getShardId,
-	guildCache,
 	type GuildDetails,
 	type SettingsKey,
+	getShardId,
+	guildCache,
 } from "~/utils/misc";
 
 export const name: EventName = "ready";
@@ -59,11 +59,22 @@ async function getStoredGuilds(
 		}
 
 		if (row.key) {
-			acc[row.guildId].settings.set(row.key as SettingsKey, row.value);
+			acc[row.guildId].settings.set(
+				row.key as SettingsKey,
+				parseSettingValue(row.value),
+			);
 		}
 
 		return acc;
 	}, {});
+}
+
+function parseSettingValue(value: unknown): unknown {
+	if (typeof value === "string" && value.startsWith("snowflake_")) {
+		return value.substring(10);
+	}
+
+	return value;
 }
 
 async function addNewGuilds(
