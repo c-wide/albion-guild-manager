@@ -102,7 +102,8 @@ export const builder = new SlashCommandBuilder()
 			.addBooleanOption(isPublicOption),
 	);
 
-export const handler: CommandHandler = async (i) => {
+// TODO: update to use cid
+export const handler: CommandHandler = async ({ i }) => {
 	// Parse command options
 	const options = parseOptions(i);
 	const { entityType, searchTerm, serverRegion, isPublic } = options;

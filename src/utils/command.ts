@@ -8,9 +8,10 @@ import {
 } from "discord.js";
 import { z } from "zod";
 
-export type CommandHandler = (
-	i: ChatInputCommandInteraction,
-) => void | Promise<void>;
+export type CommandHandler = (props: {
+	i: ChatInputCommandInteraction;
+	cid: string;
+}) => void | Promise<void>;
 
 export type AutocompleteHandler = (
 	i: AutocompleteInteraction,

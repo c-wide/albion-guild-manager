@@ -10,7 +10,7 @@ export const builder = new SlashCommandBuilder()
 	.setName(i18n.t("utc.name", { ns: "commands", lng: "en" }))
 	.setDescription(i18n.t("utc.desc", { ns: "commands", lng: "en" }));
 
-export const handler: CommandHandler = async (i) => {
+export const handler: CommandHandler = async ({ i }) => {
 	await i.reply({
 		content: "",
 		ephemeral: true,

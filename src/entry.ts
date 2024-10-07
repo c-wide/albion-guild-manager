@@ -16,6 +16,8 @@ await manager.spawn();
 
 startServerStatusInterval(manager);
 
+// TODO: dont need 400 layers of catching
+// TODO: redo logging for managers / lookup command???
 // TODO: add name localizaitons to command builders
 // TODO: eventually redo lookup i18n to match new format
 // TODO: unhandled rejection and uncaught exceptions

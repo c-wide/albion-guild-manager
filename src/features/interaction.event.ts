@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { until } from "@open-draft/until";
 import type {
 	AutocompleteInteraction,
@@ -11,6 +12,7 @@ import { logger } from "~/utils/logger";
 import {
 	createErrorEmbed,
 	createGenericEmbed,
+	getErrorMessage,
 	getServerId,
 } from "~/utils/misc";
 
@@ -100,24 +102,27 @@ async function chatInputCommandHandler(
 
 	setCooldown(i.commandName, i.user.id);
 
+	const cid = crypto.randomUUID();
 	try {
 		logger.info(
 			{
 				commandName: i.commandName,
 				userId: i.user.id,
 				serverId: getServerId(i.guildId),
+				cid,
 			},
 			"Command executed",
 		);
 
-		await command.handler(i);
+		await command.handler({ cid, i });
 	} catch (e) {
 		logger.error(
 			{
-				error: e,
+				error: getErrorMessage(e),
 				commandName: i.commandName,
 				userId: i.user.id,
 				serverId: getServerId(i.guildId),
+				cid,
 			},
 			"Error while handling command",
 		);

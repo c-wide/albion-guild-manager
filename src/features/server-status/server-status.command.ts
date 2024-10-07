@@ -1,16 +1,20 @@
 import assert from "node:assert";
 import {
+	ChatInputCommandInteraction,
 	InteractionContextType,
 	SlashCommandBuilder,
 	type SlashCommandStringOption,
 } from "discord.js";
 import type { CommandHandler } from "~/utils/command";
-import { config } from "~/utils/config";
+import { config, type AlbionServerRegion } from "~/utils/config";
 import i18n from "~/utils/i18n";
 import {
+	createGenericEmbed,
 	getServerId,
 	guildCache,
 	isAdminOrManager,
+	Settings,
+	type GuildDetails,
 	type OptionFunc,
 } from "~/utils/misc";
 
@@ -81,11 +85,44 @@ export const builder = new SlashCommandBuilder()
 	)
 	.setContexts(InteractionContextType.Guild);
 
-export const handler: CommandHandler = async (i) => {
-	// Fetch server id and cached guild
-	const serverId = getServerId(i.guildId);
-	assert(serverId, "Server ID not found in cache");
+async function addRegion(
+	cid: string,
+	i: ChatInputCommandInteraction,
+	cache: GuildDetails,
+): Promise<void> {
+	// Get region to be added from user provided option
+	const newRegion = i.options.getString(
+		"server_region",
+		true,
+	) as AlbionServerRegion;
 
+	// Get already configured regions from cache
+	const configuredRegions = (cache.settings.get(Settings.ServerStatusRegions) ??
+		[]) as AlbionServerRegion[];
+
+	// If region already exists in array, notify and bail
+	if (configuredRegions.includes(newRegion)) {
+		await i.followUp({
+			content: "",
+			embeds: [
+				createGenericEmbed({
+					title: " ",
+					description: "Region already configured",
+				}),
+			],
+		});
+		return;
+	}
+
+	// If region doesnt exist in array, add to array
+	configuredRegions.push(newRegion);
+
+	// Update database
+	// Update cache
+}
+
+export const handler: CommandHandler = async ({ cid, i }) => {
+	// Retreive cached guild
 	const cachedGuild = guildCache.get(i.guildId ?? "");
 	assert(cachedGuild, "Guild not found in cache");
 
@@ -101,6 +138,26 @@ export const handler: CommandHandler = async (i) => {
 	// Initial deferral to prevent timeouts
 	await i.deferReply({ ephemeral: true });
 
-	// TODO: Implement command
-	await i.followUp("done");
+	// Extract subcommand options
+	const subcommand = i.options.getSubcommand();
+	const subcommandGroup = i.options.getSubcommandGroup();
+
+	// Handle add, remove, view regions
+	if (subcommandGroup === "regions") {
+		switch (subcommand) {
+			case "add":
+				await addRegion(cid, i, cachedGuild);
+				break;
+			case "remove":
+				break;
+			case "view":
+				break;
+		}
+
+		return;
+	}
+
+	// Handle one of the other subcommands
+	switch (subcommand) {
+	}
 };

@@ -366,8 +366,9 @@ async function viewManagers(i: ChatInputCommandInteraction): Promise<void> {
 	});
 }
 
+// TODO: update to use cid
 // TODO: handle deleted role as manager
-export const handler: CommandHandler = async (i) => {
+export const handler: CommandHandler = async ({ i }) => {
 	logger.info(
 		{
 			serverId: getServerId(i.guildId),
