@@ -183,6 +183,7 @@ export const builder = new SlashCommandBuilder()
 	.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 	.setContexts(InteractionContextType.Guild);
 
+// TODO: if I have the cached guild I have the server id?
 async function alterManagers(i: ChatInputCommandInteraction): Promise<void> {
 	// Fetch server id and cached guild
 	const serverId = getServerId(i.guildId);
