@@ -4,6 +4,7 @@ import { db } from "~/database/db";
 import { serverSettings } from "~/database/schema";
 import { config, type AlbionServerRegion } from "~/utils/config";
 import { createGenericEmbed, Settings, type GuildDetails } from "~/utils/misc";
+import i18n from "~/utils/i18n";
 
 export async function addRegion(
 	cid: string,
@@ -27,7 +28,10 @@ export async function addRegion(
 			embeds: [
 				createGenericEmbed({
 					title: " ",
-					description: "Region already configured",
+					description: i18n.t(
+						"serverStatus.responses.regionAlreadyConfigured",
+						{ ns: "commands", lng: i.locale },
+					),
 					color: config.colors.info,
 				}),
 			],
@@ -63,7 +67,10 @@ export async function addRegion(
 		embeds: [
 			createGenericEmbed({
 				title: " ",
-				description: "Region successfully added",
+				description: i18n.t("serverStatus.responses.regionAdded", {
+					ns: "commands",
+					lng: i.locale,
+				}),
 				color: config.colors.success,
 			}),
 		],
@@ -92,7 +99,10 @@ export async function removeRegion(
 			embeds: [
 				createGenericEmbed({
 					title: " ",
-					description: "Region is not configured for your server",
+					description: i18n.t("serverStatus.responses.regionNotConfigured", {
+						ns: "commands",
+						lng: i.locale,
+					}),
 					color: config.colors.info,
 				}),
 			],
@@ -128,7 +138,10 @@ export async function removeRegion(
 		embeds: [
 			createGenericEmbed({
 				title: " ",
-				description: "Region successfully removed",
+				description: i18n.t("serverStatus.responses.regionRemoved", {
+					ns: "commands",
+					lng: i.locale,
+				}),
 				color: config.colors.success,
 			}),
 		],
@@ -151,7 +164,10 @@ export async function viewRegions(
 			embeds: [
 				createGenericEmbed({
 					title: " ",
-					description: "You have not added any regions",
+					description: i18n.t("serverStatus.responses.noRegionsConfigured", {
+						ns: "commands",
+						lng: i.locale,
+					}),
 					color: config.colors.info,
 				}),
 			],
@@ -164,8 +180,20 @@ export async function viewRegions(
 		content: " ",
 		embeds: [
 			createGenericEmbed({
-				title: " ",
-				description: `Configured regions: [${configuredRegions.join(", ")}]`,
+				title: i18n.t("serverStatus.embeds.viewRegions.title", {
+					ns: "commands",
+					lng: i.locale,
+				}),
+				description: configuredRegions
+					.map((region) =>
+						i18n.t(
+							`phrases.${
+								region.toLowerCase() as "americas" | "europe" | "asia"
+							}`,
+							{ ns: "common", lng: i.locale },
+						),
+					)
+					.join("\n"),
 				color: config.colors.info,
 			}),
 		],

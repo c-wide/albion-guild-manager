@@ -1,6 +1,5 @@
 import assert from "node:assert";
 import {
-	ChatInputCommandInteraction,
 	InteractionContextType,
 	SlashCommandBuilder,
 	type SlashCommandStringOption,
@@ -12,8 +11,6 @@ import {
 	createGenericEmbed,
 	guildCache,
 	isAdminOrManager,
-	Settings,
-	type GuildDetails,
 	type OptionFunc,
 } from "~/utils/misc";
 import {
@@ -21,6 +18,11 @@ import {
 	removeRegion,
 	viewRegions,
 } from "~/features/server-status/region";
+import {
+	disableNotifications,
+	enableNotifications,
+} from "~/features/server-status/toggle";
+import { setChannel } from "~/features/server-status/channel";
 
 export const cooldown = 5;
 
@@ -42,53 +44,136 @@ const serverRegionOption: OptionFunc<SlashCommandStringOption> = (option) =>
 		);
 
 export const builder = new SlashCommandBuilder()
-	.setName("serverstatus")
-	.setDescription("Configure Albion Online server status announcements")
+	.setName(i18n.t("serverStatus.name", { ns: "commands", lng: "en" }))
+	.setDescription(i18n.t("serverStatus.desc", { ns: "commands", lng: "en" }))
 	.addSubcommand((subcommand) =>
 		subcommand
-			.setName("enable")
-			.setDescription("Enable server status announcements"),
+			.setName(
+				i18n.t("serverStatus.subcommands.enable.name", {
+					ns: "commands",
+					lng: "en",
+				}),
+			)
+			.setDescription(
+				i18n.t("serverStatus.subcommands.enable.desc", {
+					ns: "commands",
+					lng: "en",
+				}),
+			),
 	)
 	.addSubcommand((subcommand) =>
 		subcommand
-			.setName("disable")
-			.setDescription("Disable server status announcements"),
+			.setName(
+				i18n.t("serverStatus.subcommands.disable.name", {
+					ns: "commands",
+					lng: "en",
+				}),
+			)
+			.setDescription(
+				i18n.t("serverStatus.subcommands.disable.desc", {
+					ns: "commands",
+					lng: "en",
+				}),
+			),
 	)
 	.addSubcommand((subcommand) =>
 		subcommand
-			.setName("channel")
-			.setDescription("Set the channel for announcements")
+			.setName(
+				i18n.t("serverStatus.subcommands.channel.name", {
+					ns: "commands",
+					lng: "en",
+				}),
+			)
+			.setDescription(
+				i18n.t("serverStatus.subcommands.channel.desc", {
+					ns: "commands",
+					lng: "en",
+				}),
+			)
 			.addChannelOption((option) =>
 				option
-					.setName("channel")
-					.setDescription("The channel to send announcements to")
+					.setName(
+						i18n.t("serverStatus.subcommands.channel.options.channel.name", {
+							ns: "commands",
+							lng: "en",
+						}),
+					)
+					.setDescription(
+						i18n.t("serverStatus.subcommands.channel.options.channel.desc", {
+							ns: "commands",
+							lng: "en",
+						}),
+					)
 					.setRequired(true),
 			),
 	)
 	.addSubcommandGroup((group) =>
 		group
-			.setName("regions")
-			.setDescription("Manage tracked regions")
+			.setName(
+				i18n.t("serverStatus.group.regions.name", {
+					ns: "commands",
+					lng: "en",
+				}),
+			)
+			.setDescription(
+				i18n.t("serverStatus.group.regions.desc", {
+					ns: "commands",
+					lng: "en",
+				}),
+			)
 			.addSubcommand((subcommand) =>
 				subcommand
-					.setName("add")
-					.setDescription("Add a region")
+					.setName(
+						i18n.t("serverStatus.group.regions.subcommands.add.name", {
+							ns: "commands",
+							lng: "en",
+						}),
+					)
+					.setDescription(
+						i18n.t("serverStatus.group.regions.subcommands.add.desc", {
+							ns: "commands",
+							lng: "en",
+						}),
+					)
 					.addStringOption(serverRegionOption),
 			)
 			.addSubcommand((subcommand) =>
 				subcommand
-					.setName("remove")
-					.setDescription("Remove a region")
+					.setName(
+						i18n.t("serverStatus.group.regions.subcommands.remove.name", {
+							ns: "commands",
+							lng: "en",
+						}),
+					)
+					.setDescription(
+						i18n.t("serverStatus.group.regions.subcommands.remove.desc", {
+							ns: "commands",
+							lng: "en",
+						}),
+					)
 					.addStringOption(serverRegionOption),
 			)
 			.addSubcommand((subcommand) =>
 				subcommand
-					.setName("view")
-					.setDescription("View currently configured regions"),
+					.setName(
+						i18n.t("serverStatus.group.regions.subcommands.view.name", {
+							ns: "commands",
+							lng: "en",
+						}),
+					)
+					.setDescription(
+						i18n.t("serverStatus.group.regions.subcommands.view.desc", {
+							ns: "commands",
+							lng: "en",
+						}),
+					),
 			),
 	)
 	.setContexts(InteractionContextType.Guild);
 
+// TODO: if all regions removed, disable command and notify user
+// TODO: if target channel is deleted, changed to non-text based, etc..., disable command and notify user
+// TODO: logging
 export const handler: CommandHandler = async ({ cid, i }) => {
 	// Retreive cached guild
 	const cachedGuild = guildCache.get(i.guildId ?? "");
@@ -97,8 +182,18 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 	// Only server admins or managers can use these commands
 	if (!isAdminOrManager(i.member, cachedGuild)) {
 		await i.reply({
-			content: "you dont have permission to use this command",
+			content: "",
 			ephemeral: true,
+			embeds: [
+				createGenericEmbed({
+					title: " ",
+					description: i18n.t("serverStatus.responses.noPermission", {
+						ns: "commands",
+						lng: i.locale,
+					}),
+					color: config.colors.warning,
+				}),
+			],
 		});
 		return;
 	}
@@ -133,33 +228,10 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 			await enableNotifications(cid, i, cachedGuild);
 			break;
 		case "disable":
+			await disableNotifications(cid, i, cachedGuild);
 			break;
 		case "channel":
+			await setChannel(cid, i, cachedGuild);
 			break;
 	}
 };
-
-async function enableNotifications(
-	cid: string,
-	i: ChatInputCommandInteraction,
-	cache: GuildDetails,
-): Promise<void> {
-	// check if already enabled
-	if (cache.settings.get(Settings.ServerStatusToggle) === true) {
-		await i.followUp({
-			content: "",
-			embeds: [
-				createGenericEmbed({
-					title: " ",
-					description: "Server status notifications are already enabled",
-					color: config.colors.warning,
-				}),
-			],
-		});
-		return;
-	}
-
-	// check if settings are correct
-	// update db
-	// update cache
-}
