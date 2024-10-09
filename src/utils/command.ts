@@ -1,5 +1,6 @@
 import { readdir } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
 	type AutocompleteInteraction,
 	type ChatInputCommandInteraction,
@@ -58,14 +59,16 @@ async function createCommandCollection() {
 }
 
 export async function* commandFiles() {
-	const files = await readdir(path.join(__dirname, "../features"), {
+	const dirname = path.dirname(fileURLToPath(import.meta.url));
+
+	const files = await readdir(path.join(dirname, "../features"), {
 		recursive: true,
 	});
 
 	const commandFiles = files.filter((file) => file.endsWith(".command.ts"));
 
 	for (const file of commandFiles) {
-		const fileData = await import(path.join(__dirname, "../features", file));
+		const fileData = await import(path.join(dirname, "../features", file));
 
 		const parsed = commandSchema.safeParse(fileData);
 		if (!parsed.success) {
