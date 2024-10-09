@@ -1,8 +1,8 @@
 import path from "node:path";
 import { ShardingManager } from "discord.js";
-import { startServerStatusInterval } from "~/features/server-status/status";
-import { env } from "~/utils/env";
-import { logger } from "~/utils/logger";
+import { startServerStatusInterval } from "#src/features/server-status/status.ts";
+import { env } from "#src/utils/env.ts";
+import { logger } from "#src/utils/logger.ts";
 
 const manager = new ShardingManager(path.join(__dirname, "bot.ts"), {
 	token: env.DISCORD_TOKEN,

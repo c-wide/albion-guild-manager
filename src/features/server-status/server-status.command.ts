@@ -4,26 +4,26 @@ import {
 	SlashCommandBuilder,
 	type SlashCommandStringOption,
 } from "discord.js";
-import type { CommandHandler } from "~/utils/command";
-import { config } from "~/utils/config";
-import i18n from "~/utils/i18n";
+import type { CommandHandler } from "#src/utils/command.ts";
+import { config } from "#src/utils/config.ts";
+import i18n from "#src/utils/i18n.ts";
 import {
 	createGenericEmbed,
 	guildCache,
 	isAdminOrManager,
 	type OptionFunc,
-} from "~/utils/misc";
+} from "#src/utils/misc.ts";
 import {
 	addRegion,
 	removeRegion,
 	viewRegions,
-} from "~/features/server-status/region";
+} from "#src/features/server-status/region.ts";
 import {
 	disableNotifications,
 	enableNotifications,
-} from "~/features/server-status/toggle";
-import { setChannel } from "~/features/server-status/channel";
-import { logger } from "~/utils/logger";
+} from "#src/features/server-status/toggle.ts";
+import { setChannel } from "#src/features/server-status/channel.ts";
+import { logger } from "#src/utils/logger.ts";
 
 export const cooldown = 5;
 

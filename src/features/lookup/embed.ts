@@ -1,9 +1,9 @@
 import type { Alliance, Gathering, GuildInfo, PVE, Player } from "albion-sdk";
 import { type APIEmbedField, EmbedBuilder, type Locale } from "discord.js";
-import type { SearchOptions } from "~/features/lookup/options";
-import type { EntityDetails } from "~/features/lookup/search";
-import { config } from "~/utils/config";
-import i18n from "~/utils/i18n";
+import type { SearchOptions } from "#src/features/lookup/options.ts";
+import type { EntityDetails } from "#src/features/lookup/search.ts";
+import { config } from "#src/utils/config.ts";
+import i18n from "#src/utils/i18n.ts";
 
 const linkMap = {
 	albionRegistry: {

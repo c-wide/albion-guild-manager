@@ -1,5 +1,5 @@
 import type { Config } from "drizzle-kit";
-import { env } from "~/utils/env";
+import { env } from "#src/utils/env.ts";
 
 const config: Config = {
 	schema: "./src/database/schema.ts",

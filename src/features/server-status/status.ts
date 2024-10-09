@@ -1,9 +1,9 @@
 import { performance } from "node:perf_hooks";
 import { until } from "@open-draft/until";
 import type { ShardingManager } from "discord.js";
-import { type AlbionServerRegion, config } from "~/utils/config";
-import { logger } from "~/utils/logger";
-import { sdks } from "~/utils/misc";
+import { type AlbionServerRegion, config } from "#src/utils/config.ts";
+import { logger } from "#src/utils/logger.ts";
+import { sdks } from "#src/utils/misc.ts";
 
 // TODO: investigate Bun issue causing first status check to fail
 

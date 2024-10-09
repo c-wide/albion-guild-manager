@@ -2,6 +2,9 @@
 	"name": "albion-guild-manager",
 	"type": "module",
 	"module": "src/entry.ts",
+	"imports": {
+		"#src/*": "./src/*"
+	},
 	"scripts": {
 		"start": "bun run deploy && bun run src/entry.ts",
 		"dev": "bun run src/entry.ts",

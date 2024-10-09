@@ -1,16 +1,16 @@
 import { until } from "@open-draft/until";
 import type { Collection, Guild } from "discord.js";
 import { and, eq, inArray, isNull } from "drizzle-orm";
-import { db } from "~/database/db";
-import { serverSettings, servers } from "~/database/schema";
-import type { EventHandler, EventName } from "~/utils/event";
-import { logger } from "~/utils/logger";
+import { db } from "#src/database/db.ts";
+import { serverSettings, servers } from "#src/database/schema.ts";
+import type { EventHandler, EventName } from "#src/utils/event.ts";
+import { logger } from "#src/utils/logger.ts";
 import {
 	type GuildDetails,
 	type SettingsKey,
 	getShardId,
 	guildCache,
-} from "~/utils/misc";
+} from "#src/utils/misc.ts";
 
 export const name: EventName = "ready";
 export const once = true;

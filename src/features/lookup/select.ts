@@ -5,9 +5,9 @@ import {
 	StringSelectMenuBuilder,
 	StringSelectMenuOptionBuilder,
 } from "discord.js";
-import type { SearchOptions } from "~/features/lookup/options";
-import type { SearchResult } from "~/features/lookup/search";
-import i18n from "~/utils/i18n";
+import type { SearchOptions } from "#src/features/lookup/options.ts";
+import type { SearchResult } from "#src/features/lookup/search.ts";
+import i18n from "#src/utils/i18n.ts";
 
 export async function sendSelectMenu(
 	i: ChatInputCommandInteraction,

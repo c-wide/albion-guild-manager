@@ -4,17 +4,21 @@ import type {
 	AutocompleteInteraction,
 	ChatInputCommandInteraction,
 } from "discord.js";
-import { commands } from "~/utils/command";
-import { getLastUsage, isOnCooldown, setCooldown } from "~/utils/cooldown";
-import type { EventHandler, EventName } from "~/utils/event";
-import i18n from "~/utils/i18n";
-import { logger } from "~/utils/logger";
+import { commands } from "#src/utils/command.ts";
+import {
+	getLastUsage,
+	isOnCooldown,
+	setCooldown,
+} from "#src/utils/cooldown.ts";
+import type { EventHandler, EventName } from "#src/utils/event.ts";
+import i18n from "#src/utils/i18n.ts";
+import { logger } from "#src/utils/logger.ts";
 import {
 	createErrorEmbed,
 	createGenericEmbed,
 	getErrorMessage,
 	getServerId,
-} from "~/utils/misc";
+} from "#src/utils/misc.ts";
 
 export const name: EventName = "interactionCreate";
 export const once = false;

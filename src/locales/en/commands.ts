@@ -1,7 +1,7 @@
-import { lookup } from "~/locales/en/commands/lookup";
-import { managers } from "~/locales/en/commands/managers";
-import { serverStatus } from "~/locales/en/commands/server-status";
-import { utc } from "~/locales/en/commands/utc";
+import { lookup } from "#src/locales/en/commands/lookup.ts";
+import { managers } from "#src/locales/en/commands/managers.ts";
+import { serverStatus } from "#src/locales/en/commands/server-status.ts";
+import { utc } from "#src/locales/en/commands/utc.ts";
 
 export const commands = {
 	utc,

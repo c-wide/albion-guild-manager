@@ -4,20 +4,23 @@ import {
 	SlashCommandBuilder,
 	type SlashCommandStringOption,
 } from "discord.js";
-import { createEmbed } from "~/features/lookup/embed";
-import { parseOptions } from "~/features/lookup/options";
-import { genericSearch, getEntityDetails } from "~/features/lookup/search";
-import { sendSelectMenu } from "~/features/lookup/select";
-import type { CommandHandler } from "~/utils/command";
-import { config } from "~/utils/config";
-import i18n from "~/utils/i18n";
-import { logger } from "~/utils/logger";
+import { createEmbed } from "#src/features/lookup/embed.ts";
+import { parseOptions } from "#src/features/lookup/options.ts";
+import {
+	genericSearch,
+	getEntityDetails,
+} from "#src/features/lookup/search.ts";
+import { sendSelectMenu } from "#src/features/lookup/select.ts";
+import type { CommandHandler } from "#src/utils/command.ts";
+import { config } from "#src/utils/config.ts";
+import i18n from "#src/utils/i18n.ts";
+import { logger } from "#src/utils/logger.ts";
 import {
 	type OptionFunc,
 	createErrorEmbed,
 	createGenericEmbed,
 	getServerId,
-} from "~/utils/misc";
+} from "#src/utils/misc.ts";
 
 // TODO: if only 1 result, just search for it
 

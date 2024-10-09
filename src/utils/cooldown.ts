@@ -1,5 +1,5 @@
 import { Collection } from "discord.js";
-import { commands } from "~/utils/command";
+import { commands } from "#src/utils/command.ts";
 
 const cooldowns = new Collection<string, number>();
 

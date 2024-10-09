@@ -1,6 +1,6 @@
 import type { ChatInputCommandInteraction } from "discord.js";
-import type { AlbionServerRegion } from "~/utils/config";
-import i18n from "~/utils/i18n";
+import type { AlbionServerRegion } from "#src/utils/config.ts";
+import i18n from "#src/utils/i18n.ts";
 
 export type EntityType = "player" | "guild" | "alliance";
 export type SearchOptions = {

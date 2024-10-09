@@ -1,9 +1,12 @@
 import type { Alliance, GuildInfo, Player } from "albion-sdk";
 import type { Locale } from "discord.js";
-import type { EntityType, SearchOptions } from "~/features/lookup/options";
-import type { AlbionServerRegion } from "~/utils/config";
-import i18n from "~/utils/i18n";
-import { sdks } from "~/utils/misc";
+import type {
+	EntityType,
+	SearchOptions,
+} from "#src/features/lookup/options.ts";
+import type { AlbionServerRegion } from "#src/utils/config.ts";
+import i18n from "#src/utils/i18n.ts";
+import { sdks } from "#src/utils/misc.ts";
 
 export type SearchResult = {
 	label: string;

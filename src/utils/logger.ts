@@ -1,6 +1,6 @@
 import pino from "pino";
-import { config } from "~/utils/config";
-import { env } from "~/utils/env";
+import { config } from "#src/utils/config.ts";
+import { env } from "#src/utils/env.ts";
 
 const targets: pino.TransportTargetOptions[] = [];
 

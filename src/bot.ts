@@ -1,11 +1,11 @@
 import { Client, GatewayIntentBits } from "discord.js";
-import { db } from "~/database/db";
-import { config } from "~/utils/config";
-import { env } from "~/utils/env";
-import { registerEvents } from "~/utils/event";
-import i18n from "~/utils/i18n";
-import { logger } from "~/utils/logger";
-import { guildCache } from "~/utils/misc";
+import { db } from "#src/database/db.ts";
+import { config } from "#src/utils/config.ts";
+import { env } from "#src/utils/env.ts";
+import { registerEvents } from "#src/utils/event.ts";
+import i18n from "#src/utils/i18n.ts";
+import { logger } from "#src/utils/logger.ts";
+import { guildCache } from "#src/utils/misc.ts";
 
 const client = new Client({
 	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],

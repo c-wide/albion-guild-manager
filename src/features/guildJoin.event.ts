@@ -1,10 +1,10 @@
 import { until } from "@open-draft/until";
 import { and, eq, isNull } from "drizzle-orm";
-import { db } from "~/database/db";
-import { serverSettings, servers } from "~/database/schema";
-import type { EventHandler, EventName } from "~/utils/event";
-import { logger } from "~/utils/logger";
-import { guildCache } from "~/utils/misc";
+import { db } from "#src/database/db.ts";
+import { serverSettings, servers } from "#src/database/schema.ts";
+import type { EventHandler, EventName } from "#src/utils/event.ts";
+import { logger } from "#src/utils/logger.ts";
+import { guildCache } from "#src/utils/misc.ts";
 
 export const name: EventName = "guildCreate";
 export const once = false;

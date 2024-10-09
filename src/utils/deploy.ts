@@ -1,8 +1,8 @@
 import { REST, Routes } from "discord.js";
-import { commandFiles } from "~/utils/command";
-import { env } from "~/utils/env";
-import { logger } from "~/utils/logger";
-import { getErrorMessage } from "~/utils/misc";
+import { commandFiles } from "#src/utils/command.ts";
+import { env } from "#src/utils/env.ts";
+import { logger } from "#src/utils/logger.ts";
+import { getErrorMessage } from "#src/utils/misc.ts";
 
 logger.info("Beginning command deployment");
 

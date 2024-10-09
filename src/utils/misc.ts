@@ -7,9 +7,9 @@ import {
 	GuildMember,
 	PermissionFlagsBits,
 } from "discord.js";
-import { config } from "~/utils/config";
-import i18n from "~/utils/i18n";
-import { logger } from "~/utils/logger";
+import { config } from "#src/utils/config.ts";
+import i18n from "#src/utils/i18n.ts";
+import { logger } from "#src/utils/logger.ts";
 
 export const sdks = {
 	Americas: new AlbionSDK("Americas"),

@@ -1,8 +1,8 @@
 import { SlashCommandBuilder } from "discord.js";
-import type { CommandHandler } from "~/utils/command";
-import { config } from "~/utils/config";
-import i18n from "~/utils/i18n";
-import { createGenericEmbed } from "~/utils/misc";
+import type { CommandHandler } from "#src/utils/command.ts";
+import { config } from "#src/utils/config.ts";
+import i18n from "#src/utils/i18n.ts";
+import { createGenericEmbed } from "#src/utils/misc.ts";
 
 export const cooldown = 5;
 
