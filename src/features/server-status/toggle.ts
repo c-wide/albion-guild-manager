@@ -5,6 +5,7 @@ import { serverSettings } from "~/database/schema";
 import { config, type AlbionServerRegion } from "~/utils/config";
 import { createGenericEmbed, Settings, type GuildDetails } from "~/utils/misc";
 import i18n from "~/utils/i18n";
+import { logger } from "~/utils/logger";
 
 export async function enableNotifications(
 	cid: string,
@@ -13,6 +14,7 @@ export async function enableNotifications(
 ): Promise<void> {
 	// Check if notifications are already enabled
 	if (cache.settings.get(Settings.ServerStatusToggle)) {
+		logger.info({ cid }, "Notifications already enabled");
 		await i.followUp({
 			content: "",
 			embeds: [
@@ -35,6 +37,7 @@ export async function enableNotifications(
 		| undefined;
 
 	if (channel === undefined) {
+		logger.info({ cid }, "Notification channel not configured");
 		await i.followUp({
 			content: "",
 			embeds: [
@@ -55,6 +58,7 @@ export async function enableNotifications(
 		[]) as AlbionServerRegion[];
 
 	if (regions.length === 0) {
+		logger.info({ cid }, "No regions being tracked");
 		await i.followUp({
 			content: "",
 			embeds: [
@@ -90,6 +94,9 @@ export async function enableNotifications(
 	// Update cache
 	cache.settings.set(Settings.ServerStatusToggle, true);
 
+	// Log things
+	logger.info({ cid }, "Notifications enabled");
+
 	// Respond to the user
 	await i.followUp({
 		content: "",
@@ -113,6 +120,7 @@ export async function disableNotifications(
 ): Promise<void> {
 	// Check if server status notifications are already disabled
 	if (!cache.settings.get(Settings.ServerStatusToggle)) {
+		logger.info({ cid }, "Notifications already disabled");
 		await i.followUp({
 			content: "",
 			embeds: [
@@ -142,6 +150,9 @@ export async function disableNotifications(
 
 	// Update cache
 	cache.settings.set(Settings.ServerStatusToggle, false);
+
+	// Log things
+	logger.info({ cid }, "Notifications disabled");
 
 	// Respond to the user
 	await i.followUp({

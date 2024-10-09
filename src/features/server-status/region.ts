@@ -5,6 +5,7 @@ import { serverSettings } from "~/database/schema";
 import { config, type AlbionServerRegion } from "~/utils/config";
 import { createGenericEmbed, Settings, type GuildDetails } from "~/utils/misc";
 import i18n from "~/utils/i18n";
+import { logger } from "~/utils/logger";
 
 export async function addRegion(
 	cid: string,
@@ -23,6 +24,7 @@ export async function addRegion(
 
 	// If region already exists in array, notify and bail
 	if (configuredRegions.includes(newRegion)) {
+		logger.info({ cid }, "Region already being tracked");
 		await i.followUp({
 			content: "",
 			embeds: [
@@ -61,6 +63,9 @@ export async function addRegion(
 	// Update cache
 	cache.settings.set(Settings.ServerStatusRegions, configuredRegions);
 
+	// Log things
+	logger.info({ cid, newRegion }, "Region added");
+
 	// Respond to the user
 	await i.followUp({
 		content: " ",
@@ -94,6 +99,7 @@ export async function removeRegion(
 
 	// If region doesnt exist in array, notify and bail
 	if (!configuredRegions.includes(regionToRemove)) {
+		logger.info({ cid }, "Region is not being tracked");
 		await i.followUp({
 			content: "",
 			embeds: [
@@ -132,6 +138,9 @@ export async function removeRegion(
 	// Update cache
 	cache.settings.set(Settings.ServerStatusRegions, newRegions);
 
+	// Log things
+	logger.info({ cid, regionToRemove }, "Region removed");
+
 	// Respond to the user
 	await i.followUp({
 		content: " ",
@@ -159,6 +168,7 @@ export async function viewRegions(
 
 	// If no regions are configured, notify and bail
 	if (configuredRegions.length === 0) {
+		logger.info({ cid }, "No regions being tracked");
 		await i.followUp({
 			content: "",
 			embeds: [
@@ -174,6 +184,9 @@ export async function viewRegions(
 		});
 		return;
 	}
+
+	// Log things
+	logger.info({ cid }, "Displaying tracked regions");
 
 	// Respond to the user
 	await i.followUp({

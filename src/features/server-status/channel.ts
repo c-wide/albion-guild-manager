@@ -4,6 +4,7 @@ import { serverSettings } from "~/database/schema";
 import { config } from "~/utils/config";
 import { createGenericEmbed, Settings, type GuildDetails } from "~/utils/misc";
 import i18n from "~/utils/i18n";
+import { logger } from "~/utils/logger";
 
 export async function setChannel(
 	cid: string,
@@ -15,6 +16,7 @@ export async function setChannel(
 
 	// Verify target channel is a text channel
 	if (channel.type !== ChannelType.GuildText) {
+		logger.info({ cid }, "Wrong channel type");
 		await i.followUp({
 			content: "",
 			embeds: [
@@ -33,6 +35,7 @@ export async function setChannel(
 
 	// Check if the target channel is already the configured channel
 	if (cache.settings.get(Settings.ServerStatusChannel) === channel.id) {
+		logger.info({ cid }, "Already notification channel");
 		await i.followUp({
 			content: "",
 			embeds: [
@@ -67,6 +70,9 @@ export async function setChannel(
 
 	// Update cache
 	cache.settings.set(Settings.ServerStatusChannel, channel.id);
+
+	// Log things
+	logger.info({ cid, channelId: channel.id }, "Notification channel set");
 
 	// Respond to the user
 	await i.followUp({

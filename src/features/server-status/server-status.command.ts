@@ -23,6 +23,7 @@ import {
 	enableNotifications,
 } from "~/features/server-status/toggle";
 import { setChannel } from "~/features/server-status/channel";
+import { logger } from "~/utils/logger";
 
 export const cooldown = 5;
 
@@ -173,7 +174,6 @@ export const builder = new SlashCommandBuilder()
 
 // TODO: if all regions removed, disable command and notify user
 // TODO: if target channel is deleted, changed to non-text based, etc..., disable command and notify user
-// TODO: logging
 export const handler: CommandHandler = async ({ cid, i }) => {
 	// Retreive cached guild
 	const cachedGuild = guildCache.get(i.guildId ?? "");
@@ -181,6 +181,7 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 
 	// Only server admins or managers can use these commands
 	if (!isAdminOrManager(i.member, cachedGuild)) {
+		logger.info({ cid }, "User lacks permission");
 		await i.reply({
 			content: "",
 			ephemeral: true,
