@@ -2,13 +2,13 @@ import { ChannelType, type ChatInputCommandInteraction } from "discord.js";
 import { db } from "#src/database/db.ts";
 import { serverSettings } from "#src/database/schema.ts";
 import { config } from "#src/utils/config.ts";
-import {
-	createGenericEmbed,
-	Settings,
-	type GuildDetails,
-} from "#src/utils/misc.ts";
 import i18n from "#src/utils/i18n.ts";
 import { logger } from "#src/utils/logger.ts";
+import {
+	type GuildDetails,
+	Settings,
+	createGenericEmbed,
+} from "#src/utils/misc.ts";
 
 export async function setChannel(
 	cid: string,

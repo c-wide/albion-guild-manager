@@ -4,7 +4,7 @@ import {
 	type APIInteractionGuildMember,
 	type Client,
 	EmbedBuilder,
-	GuildMember,
+	type GuildMember,
 	PermissionFlagsBits,
 } from "discord.js";
 import { config } from "#src/utils/config.ts";

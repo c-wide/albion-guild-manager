@@ -2,14 +2,14 @@ import type { ChatInputCommandInteraction } from "discord.js";
 import { and, eq } from "drizzle-orm";
 import { db } from "#src/database/db.ts";
 import { serverSettings } from "#src/database/schema.ts";
-import { config, type AlbionServerRegion } from "#src/utils/config.ts";
-import {
-	createGenericEmbed,
-	Settings,
-	type GuildDetails,
-} from "#src/utils/misc.ts";
+import { type AlbionServerRegion, config } from "#src/utils/config.ts";
 import i18n from "#src/utils/i18n.ts";
 import { logger } from "#src/utils/logger.ts";
+import {
+	type GuildDetails,
+	Settings,
+	createGenericEmbed,
+} from "#src/utils/misc.ts";
 
 export async function addRegion(
 	cid: string,

@@ -4,15 +4,7 @@ import {
 	SlashCommandBuilder,
 	type SlashCommandStringOption,
 } from "discord.js";
-import type { CommandHandler } from "#src/utils/command.ts";
-import { config } from "#src/utils/config.ts";
-import i18n from "#src/utils/i18n.ts";
-import {
-	createGenericEmbed,
-	guildCache,
-	isAdminOrManager,
-	type OptionFunc,
-} from "#src/utils/misc.ts";
+import { setChannel } from "#src/features/server-status/channel.ts";
 import {
 	addRegion,
 	removeRegion,
@@ -22,8 +14,16 @@ import {
 	disableNotifications,
 	enableNotifications,
 } from "#src/features/server-status/toggle.ts";
-import { setChannel } from "#src/features/server-status/channel.ts";
+import type { CommandHandler } from "#src/utils/command.ts";
+import { config } from "#src/utils/config.ts";
+import i18n from "#src/utils/i18n.ts";
 import { logger } from "#src/utils/logger.ts";
+import {
+	type OptionFunc,
+	createGenericEmbed,
+	guildCache,
+	isAdminOrManager,
+} from "#src/utils/misc.ts";
 
 export const cooldown = 5;
 
