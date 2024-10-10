@@ -135,6 +135,7 @@ export const handler: CommandHandler = async ({ i }) => {
 			components: [],
 			embeds: [
 				createErrorEmbed(
+					"TBD",
 					i18n.t("error.killboardAPI", { ns: "common", lng: i.locale }),
 					i.locale,
 				),
@@ -229,6 +230,7 @@ export const handler: CommandHandler = async ({ i }) => {
 			components: [],
 			embeds: [
 				createErrorEmbed(
+					"TBD",
 					i18n.t("error.killboardAPI", { ns: "common", lng: i.locale }),
 					i.locale,
 				),

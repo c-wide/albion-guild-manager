@@ -114,6 +114,7 @@ export function createGenericEmbed({
 }
 
 export function createErrorEmbed(
+	cid: string,
 	message: string,
 	locale: string,
 ): EmbedBuilder {
@@ -127,6 +128,22 @@ export function createErrorEmbed(
 				interpolation: { escapeValue: false },
 			})}`,
 		)
+		.addFields([
+			{
+				name: " ",
+				value: " ",
+			},
+			{
+				name: i18n.t("phrases.correlationId", { ns: "common", lng: locale }),
+				value: `\`\`\`${cid}\`\`\``,
+				inline: true,
+			},
+			{
+				name: " ",
+				value: " ",
+				inline: true,
+			},
+		])
 		.setColor(config.colors.error);
 }
 

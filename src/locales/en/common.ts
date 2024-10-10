@@ -50,6 +50,7 @@ export const common = {
 		allyInfo: "Alliance Information",
 		tag: "Tag",
 		guildHistory: "Guild History",
+		correlationId: "Correlation ID",
 	},
 	error: {
 		killboardAPI:

@@ -67,6 +67,7 @@ async function chatInputCommandHandler(
 			ephemeral: true,
 			embeds: [
 				createErrorEmbed(
+					"N/A",
 					i18n.t("command.error.unknown", { ns: "system", lng: i.locale }),
 					i.locale,
 				),
@@ -140,13 +141,13 @@ async function chatInputCommandHandler(
 			await i.followUp({
 				content: "",
 				ephemeral: true,
-				embeds: [createErrorEmbed(errorMessage, i.locale)],
+				embeds: [createErrorEmbed(cid, errorMessage, i.locale)],
 			});
 		} else {
 			await i.reply({
 				content: "",
 				ephemeral: true,
-				embeds: [createErrorEmbed(errorMessage, i.locale)],
+				embeds: [createErrorEmbed(cid, errorMessage, i.locale)],
 			});
 		}
 	}
