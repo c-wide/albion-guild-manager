@@ -80,10 +80,6 @@ export const managers = {
 	responses: {
 		noPermission:
 			"You don't have the required permissions to manage bot administrators",
-		viewErr:
-			"An error occurred while retrieving the list of bot managers. Please try again later",
-		updateErr:
-			"An error occurred while updating bot managers. Please check your input and try again later",
 		addRole:
 			"The role <@&{{target}}> has been granted bot management permissions",
 		addUser:

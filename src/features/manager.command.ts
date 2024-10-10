@@ -1,24 +1,23 @@
 import assert from "node:assert";
-import { until } from "@open-draft/until";
 import {
 	type ChatInputCommandInteraction,
 	InteractionContextType,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from "discord.js";
-import { db } from "~/database/db";
-import { serverSettings } from "~/database/schema";
-import type { CommandHandler } from "~/utils/command";
-import { config } from "~/utils/config";
-import i18n from "~/utils/i18n";
-import { logger } from "~/utils/logger";
+import { db } from "#src/database/db.ts";
+import { serverSettings } from "#src/database/schema.ts";
+import type { CommandHandler } from "#src/utils/command.ts";
+import { config } from "#src/utils/config.ts";
+import i18n from "#src/utils/i18n.ts";
+import { logger } from "#src/utils/logger.ts";
 import {
+	type GuildDetails,
 	Settings,
-	createErrorEmbed,
 	createGenericEmbed,
-	getServerId,
 	guildCache,
-} from "~/utils/misc";
+} from "#src/utils/misc.ts";
+import { and, eq } from "drizzle-orm";
 
 export const cooldown = 5;
 
@@ -183,82 +182,144 @@ export const builder = new SlashCommandBuilder()
 	.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 	.setContexts(InteractionContextType.Guild);
 
-// TODO: if I have the cached guild I have the server id?
-async function alterManagers(i: ChatInputCommandInteraction): Promise<void> {
-	// Fetch server id and cached guild
-	const serverId = getServerId(i.guildId);
-	assert(serverId, "Server ID not found in cache");
-
-	const cachedGuild = guildCache.get(i.guildId ?? "");
-	assert(cachedGuild, "Guild not found in cache");
-
-	// Extract options
-	const group = i.options.getSubcommandGroup(true) as "add" | "remove";
+async function removeManager(
+	cid: string,
+	i: ChatInputCommandInteraction,
+	cache: GuildDetails,
+): Promise<void> {
+	// Extract subcommand option string
 	const command = i.options.getSubcommand(true) as "role" | "user";
 
+	// Figure out which type of manager is being added
 	const targetSetting =
 		command === "role" ? Settings.ManagerRoles : Settings.ManagerUsers;
 
+	// Extract the role or user id
 	const targetId =
 		command === "role"
 			? i.options.getRole("role", true).id
 			: i.options.getUser("user", true).id;
 
 	// Extract current managers from cached guild settings
-	let managers = (cachedGuild.settings.get(targetSetting) ?? []) as string[];
+	let managers = (cache.settings.get(targetSetting) ?? []) as string[];
 
-	// Depending on the action, add or remove the manager
-	if (group === "add") {
-		// Handle manager already existing for this server
-		if (managers.includes(targetId)) {
-			await i.followUp({
-				content: "",
-				embeds: [
-					createGenericEmbed({
-						title: " ",
-						description: i18n.t(`managers.responses.${command}AlreadyManager`, {
-							target: targetId,
-							ns: "commands",
-							lng: i.locale,
-						}),
-						color: config.colors.warning,
+	// Handle manager not already existing for this server
+	if (!managers.includes(targetId)) {
+		logger.info(
+			{ cid, type: command, id: targetId },
+			"Target is not a manager",
+		);
+		await i.followUp({
+			content: "",
+			embeds: [
+				createGenericEmbed({
+					title: " ",
+					description: i18n.t(`managers.responses.${command}NotManager`, {
+						target: targetId,
+						ns: "commands",
+						lng: i.locale,
 					}),
-				],
-			});
-			return;
-		}
-
-		// If manager doesn't already exist, add them to the array
-		managers.push(targetId);
-	} else {
-		// Handle manager not already existing for this server
-		if (!managers.includes(targetId)) {
-			await i.followUp({
-				content: "",
-				embeds: [
-					createGenericEmbed({
-						title: " ",
-						description: i18n.t(`managers.responses.${command}NotManager`, {
-							target: targetId,
-							ns: "commands",
-							lng: i.locale,
-						}),
-						color: config.colors.warning,
-					}),
-				],
-			});
-			return;
-		}
-
-		// If manager does exist, remove them from the array
-		managers = managers.filter((managerId) => managerId !== targetId);
+					color: config.colors.info,
+				}),
+			],
+		});
+		return;
 	}
 
-	// Upsert managers
+	// If manager does exist, remove them from the array
+	managers = managers.filter((managerId) => managerId !== targetId);
+
+	// Update db
+	await db
+		.update(serverSettings)
+		.set({
+			value: managers,
+			updatedAt: new Date(),
+		})
+		.where(
+			and(
+				eq(serverSettings.serverId, cache.id),
+				eq(serverSettings.key, targetSetting),
+			),
+		);
+
+	// Update cache
+	cache.settings.set(targetSetting, managers);
+
+	// Log things
+	logger.info(
+		{ cid, type: command, id: targetId },
+		"Target removed from managers",
+	);
+
+	// If nothing went wrong, let the user know their operation was successful
+	await i.followUp({
+		content: "",
+		embeds: [
+			createGenericEmbed({
+				title: " ",
+				description: i18n.t(
+					`managers.responses.remove${command === "role" ? "Role" : "User"}`,
+					{ target: targetId, ns: "commands", lng: i.locale },
+				),
+				color: config.colors.success,
+			}),
+		],
+	});
+}
+
+async function addManager(
+	cid: string,
+	i: ChatInputCommandInteraction,
+	cache: GuildDetails,
+): Promise<void> {
+	// Extract subcommand option string
+	const command = i.options.getSubcommand(true) as "role" | "user";
+
+	// Figure out which type of manager is being added
+	const targetSetting =
+		command === "role" ? Settings.ManagerRoles : Settings.ManagerUsers;
+
+	// Extract the role or user id
+	const targetId =
+		command === "role"
+			? i.options.getRole("role", true).id
+			: i.options.getUser("user", true).id;
+
+	// Extract current managers from cached guild settings
+	let managers = (cache.settings.get(targetSetting) ?? []) as string[];
+
+	// Handle manager already existing for this server
+	if (managers.includes(targetId)) {
+		logger.info(
+			{ cid, type: command, id: targetId },
+			"Target is already manager",
+		);
+		await i.followUp({
+			content: "",
+			embeds: [
+				createGenericEmbed({
+					title: " ",
+					description: i18n.t(`managers.responses.${command}AlreadyManager`, {
+						target: targetId,
+						ns: "commands",
+						lng: i.locale,
+					}),
+					color: config.colors.info,
+				}),
+			],
+		});
+		return;
+	}
+
+	// If manager doesn't already exist, add them to the array
+	managers.push(targetId);
+
+	// Update db
 	await db
 		.insert(serverSettings)
 		.values({
-			serverId,
+			serverId: cache.id,
 			key: targetSetting,
 			value: managers,
 		})
@@ -271,7 +332,10 @@ async function alterManagers(i: ChatInputCommandInteraction): Promise<void> {
 		});
 
 	// Update cache
-	cachedGuild.settings.set(targetSetting, managers);
+	cache.settings.set(targetSetting, managers);
+
+	// Log things
+	logger.info({ cid, type: command, id: targetId }, "Target added to managers");
 
 	// If nothing went wrong, let the user know their operation was successful
 	await i.followUp({
@@ -280,7 +344,7 @@ async function alterManagers(i: ChatInputCommandInteraction): Promise<void> {
 			createGenericEmbed({
 				title: " ",
 				description: i18n.t(
-					`managers.responses.${group}${command === "role" ? "Role" : "User"}`,
+					`managers.responses.add${command === "role" ? "Role" : "User"}`,
 					{ target: targetId, ns: "commands", lng: i.locale },
 				),
 				color: config.colors.success,
@@ -289,22 +353,18 @@ async function alterManagers(i: ChatInputCommandInteraction): Promise<void> {
 	});
 }
 
-async function viewManagers(i: ChatInputCommandInteraction): Promise<void> {
-	// Fetch server id and cached guild
-	const serverId = getServerId(i.guildId);
-	assert(serverId, "Server ID not found in cache");
-
-	const cachedGuild = guildCache.get(i.guildId ?? "");
-	assert(cachedGuild, "Guild not found in cache");
-
+async function viewManagers(
+	cid: string,
+	i: ChatInputCommandInteraction,
+	cache: GuildDetails,
+): Promise<void> {
 	// Extract role and user manager settings
-	const roles = (cachedGuild.settings.get(Settings.ManagerRoles) ??
-		[]) as string[];
-	const users = (cachedGuild.settings.get(Settings.ManagerUsers) ??
-		[]) as string[];
+	const roles = (cache.settings.get(Settings.ManagerRoles) ?? []) as string[];
+	const users = (cache.settings.get(Settings.ManagerUsers) ?? []) as string[];
 
 	// If no managers are configured, tell them and bail
 	if (roles.length === 0 && users.length === 0) {
+		logger.info({ cid }, "No managers configured");
 		await i.followUp({
 			content: "",
 			embeds: [
@@ -320,6 +380,9 @@ async function viewManagers(i: ChatInputCommandInteraction): Promise<void> {
 		});
 		return;
 	}
+
+	// Log things
+	logger.info({ cid }, "Displaying configured managers");
 
 	// If you're here that means managers have been configured, show the user
 	await i.followUp({
@@ -367,33 +430,15 @@ async function viewManagers(i: ChatInputCommandInteraction): Promise<void> {
 	});
 }
 
-// TODO: update to use cid
-// TODO: handle deleted role as manager
-export const handler: CommandHandler = async ({ i }) => {
-	logger.info(
-		{
-			serverId: getServerId(i.guildId),
-			userId: i.user.id,
-			subcommand: i.options.getSubcommand(),
-			subcommandGroup: i.options.getSubcommandGroup() ?? undefined,
-			targetId:
-				i.options.getSubcommand() === "role"
-					? i.options.getRole("role")?.id
-					: i.options.getUser("user")?.id,
-		},
-		"Managers command details",
-	);
+// TODO: handle manager role being delete or user leaving server
+export const handler: CommandHandler = async ({ cid, i }) => {
+	// Retreive cached guild
+	const cachedGuild = guildCache.get(i.guildId ?? "");
+	assert(cachedGuild, "Guild not found in cache");
 
 	// Only users with ManageGuild permission can add/remove managers
 	if (i.memberPermissions?.has(PermissionFlagsBits.ManageGuild) === false) {
-		logger.info(
-			{
-				serverId: getServerId(i.guildId),
-				userId: i.user.id,
-				cmdName: "managers",
-			},
-			"Command executed without proper permission",
-		);
+		logger.info({ cid }, "User lacks permission");
 		await i.reply({
 			content: "",
 			ephemeral: true,
@@ -416,49 +461,17 @@ export const handler: CommandHandler = async ({ i }) => {
 
 	// Handle view subcommand and display manager roles/users
 	if (i.options.getSubcommand() === "view") {
-		const { error } = await until(() => viewManagers(i));
-		if (error) {
-			logger.error(
-				{ serverId: getServerId(i.guildId), userId: i.user.id, error },
-				"Error while viewing managers",
-			);
-
-			await i.followUp({
-				content: "",
-				embeds: [
-					createErrorEmbed(
-						i18n.t("managers.responses.viewErr", {
-							ns: "commands",
-							lng: i.locale,
-						}),
-						i.locale,
-					),
-				],
-			});
-		}
+		await viewManagers(cid, i, cachedGuild);
 		return;
 	}
 
-	// We've made it here so we want to add/remove managers
-	const { error } = await until(() => alterManagers(i));
-
-	if (error) {
-		logger.error(
-			{ serverId: getServerId(i.guildId), userId: i.user.id, error },
-			"Error while updating managers",
-		);
-		await i.followUp({
-			content: "",
-			embeds: [
-				createErrorEmbed(
-					i18n.t("managers.responses.updateErr", {
-						ns: "commands",
-						lng: i.locale,
-					}),
-					i.locale,
-				),
-			],
-		});
-		return;
+	// We've made it here so we want to add or remove managers
+	switch (i.options.getSubcommandGroup(true)) {
+		case "add":
+			await addManager(cid, i, cachedGuild);
+			break;
+		case "remove":
+			await removeManager(cid, i, cachedGuild);
+			break;
 	}
 };
