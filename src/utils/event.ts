@@ -1,6 +1,5 @@
 import { readdir } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import type { Client, ClientEvents } from "discord.js";
 import { z } from "zod";
 
@@ -23,16 +22,16 @@ export async function registerEvents(client: Client) {
 }
 
 export async function* eventFiles() {
-	const dirname = path.dirname(fileURLToPath(import.meta.url));
-
-	const files = await readdir(path.join(dirname, "../features"), {
+	const files = await readdir(path.join(import.meta.dirname, "../features"), {
 		recursive: true,
 	});
 
 	const eventFiles = files.filter((file) => file.endsWith(".event.ts"));
 
 	for (const file of eventFiles) {
-		const fileData = await import(path.join(dirname, "../features", file));
+		const fileData = await import(
+			path.join(import.meta.dirname, "../features", file)
+		);
 
 		const parsed = eventSchema.safeParse(fileData);
 		if (!parsed.success) {

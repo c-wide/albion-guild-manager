@@ -5,7 +5,7 @@ import { type AlbionServerRegion, config } from "#src/utils/config.ts";
 import { logger } from "#src/utils/logger.ts";
 import { sdks } from "#src/utils/misc.ts";
 
-// TODO: investigate Bun issue causing first status check to fail
+// TODO: investigate issue causing first status check to fail for Europe & Asia
 
 type Server = {
 	status: "online" | "offline" | null;
