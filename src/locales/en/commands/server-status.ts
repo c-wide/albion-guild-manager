@@ -40,6 +40,10 @@ export const serverStatus = {
 				},
 			},
 		},
+		setup: {
+			name: "setup",
+			desc: "Start an interactive setup process for status notifications",
+		},
 	},
 	embeds: {
 		viewRegions: {
