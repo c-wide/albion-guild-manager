@@ -1,5 +1,6 @@
 import { until } from "@open-draft/until";
 import {
+	ComponentType,
 	type SlashCommandBooleanOption,
 	SlashCommandBuilder,
 	type SlashCommandStringOption,
@@ -173,7 +174,8 @@ export const handler: CommandHandler = async ({ i }) => {
 		await until(() =>
 			message.awaitMessageComponent({
 				filter: (mi) => mi.user.id === i.user.id,
-				time: 60000 * 3,
+				time: 60_000 * 3,
+				componentType: ComponentType.StringSelect,
 			}),
 		);
 
@@ -199,9 +201,6 @@ export const handler: CommandHandler = async ({ i }) => {
 		});
 		return;
 	}
-
-	// Typescript is a fun language
-	if (!messageInteraction.isStringSelectMenu()) return;
 
 	// Update user that we're searching so the select menu response doesn't timeout
 	await messageInteraction.update({
