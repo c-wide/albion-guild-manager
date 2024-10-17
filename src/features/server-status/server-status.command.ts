@@ -1,19 +1,8 @@
 import assert from "node:assert";
 import {
-	ActionRowBuilder,
-	ButtonBuilder,
-	ButtonStyle,
-	ChannelSelectMenuBuilder,
 	ChannelType,
-	ChatInputCommandInteraction,
 	InteractionContextType,
-	ModalBuilder,
-	PermissionsBitField,
 	SlashCommandBuilder,
-	StringSelectMenuBuilder,
-	StringSelectMenuOptionBuilder,
-	TextInputBuilder,
-	TextInputStyle,
 	type SlashCommandStringOption,
 } from "discord.js";
 import { setChannel } from "#src/features/server-status/channel.ts";
@@ -31,12 +20,12 @@ import { config } from "#src/utils/config.ts";
 import i18n from "#src/utils/i18n.ts";
 import { logger } from "#src/utils/logger.ts";
 import {
-	type GuildDetails,
 	type OptionFunc,
 	createGenericEmbed,
 	guildCache,
 	isAdminOrManager,
 } from "#src/utils/misc.ts";
+import { setupWizard } from "#src/features/server-status/wizard.ts";
 
 export const cooldown = 5;
 
@@ -118,6 +107,7 @@ export const builder = new SlashCommandBuilder()
 							lng: "en",
 						}),
 					)
+					.addChannelTypes(ChannelType.GuildText)
 					.setRequired(true),
 			),
 	)
@@ -199,143 +189,6 @@ export const builder = new SlashCommandBuilder()
 			),
 	)
 	.setContexts(InteractionContextType.Guild);
-
-// Error handling, i18n, cleanup code?
-async function setupWizard(
-	cid: string,
-	i: ChatInputCommandInteraction,
-	cache: GuildDetails,
-): Promise<void> {
-	const regionOptions = config.albionServerRegions.map((region) => {
-		return new StringSelectMenuOptionBuilder()
-			.setLabel(
-				i18n.t(
-					`phrases.${region.toLowerCase() as "americas" | "asia" | "europe"}`,
-					{ ns: "common", lng: i.locale },
-				),
-			)
-			.setValue(region);
-	});
-
-	const regionSelector = new StringSelectMenuBuilder()
-		.setCustomId("regionSelector")
-		.setPlaceholder("Select one or more regions to track")
-		.addOptions(regionOptions)
-		.setMinValues(1)
-		.setMaxValues(config.albionServerRegions.length);
-
-	const regionRow =
-		new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-			regionSelector,
-		);
-
-	const regionResponse = await i.reply({
-		components: [regionRow],
-		ephemeral: true,
-	});
-
-	// catch this?
-	const regionConfirmation = await regionResponse.awaitMessageComponent({
-		filter: (mi) => mi.user.id === i.user.id,
-		time: 60_000,
-	});
-
-	const createChannelButton = new ButtonBuilder()
-		.setCustomId("createChannel")
-		.setLabel("Create Channel")
-		.setStyle(ButtonStyle.Primary);
-
-	const selectChannelButton = new ButtonBuilder()
-		.setCustomId("selectChannel")
-		.setLabel("Select Channel")
-		.setStyle(ButtonStyle.Primary);
-
-	const channelRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-		selectChannelButton,
-		createChannelButton,
-	);
-
-	const channelResponse = await regionConfirmation.update({
-		content: "Where would you like the status notifications to go?",
-		components: [channelRow],
-	});
-
-	// catch this?
-	const channelConfirmation = await channelResponse.awaitMessageComponent({
-		filter: (mi) => mi.user.id === i.user.id,
-		time: 60_000,
-	});
-
-	if (channelConfirmation.customId === "createChannel") {
-		const modal = new ModalBuilder()
-			.setCustomId("createChannelModel")
-			.setTitle("Channel Settings");
-
-		const channelNameInput = new TextInputBuilder()
-			.setCustomId("channelNameInput")
-			.setLabel("Channel Name")
-			.setStyle(TextInputStyle.Short)
-			.setPlaceholder("server-status")
-			.setRequired(true);
-
-		const row = new ActionRowBuilder<TextInputBuilder>().addComponents(
-			channelNameInput,
-		);
-
-		modal.addComponents(row);
-
-		await channelConfirmation.showModal(modal);
-
-		// catch this?
-		const modalConfirmation = await channelConfirmation.awaitModalSubmit({
-			time: 60_000,
-		});
-
-		// Typescript non-sense
-		if (!modalConfirmation.isFromMessage()) return;
-
-		await modalConfirmation.update({
-			content: "Creating channel...",
-			components: [],
-		});
-
-		const channelName =
-			modalConfirmation.fields.getTextInputValue("channelNameInput");
-
-		const newChannel = await i.guild?.channels.create({
-			name: channelName,
-			type: ChannelType.GuildText,
-			permissionOverwrites: [
-				{
-					id: i.guild.roles.everyone,
-					allow: [
-						PermissionsBitField.Flags.ViewChannel,
-						PermissionsBitField.Flags.ReadMessageHistory,
-					],
-					deny: [
-						PermissionsBitField.Flags.SendMessages,
-						PermissionsBitField.Flags.CreatePublicThreads,
-						PermissionsBitField.Flags.CreatePrivateThreads,
-						PermissionsBitField.Flags.EmbedLinks,
-						PermissionsBitField.Flags.AttachFiles,
-						PermissionsBitField.Flags.SendTTSMessages,
-						PermissionsBitField.Flags.SendVoiceMessages,
-						PermissionsBitField.Flags.SendPolls,
-						PermissionsBitField.Flags.UseApplicationCommands,
-						PermissionsBitField.Flags.UseEmbeddedActivities,
-						PermissionsBitField.Flags.UseExternalApps,
-					],
-				},
-			],
-		});
-
-		await modalConfirmation.editReply({
-			content: `Created channel <#${newChannel?.id}>`,
-		});
-	} else {
-		// TODO: present channel selector
-	}
-}
 
 // TODO: if all regions removed, disable command and notify user
 // TODO: if target channel is deleted, changed to non-text based, etc..., disable command and notify user
