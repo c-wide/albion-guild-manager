@@ -15,6 +15,7 @@ import {
 	disableNotifications,
 	enableNotifications,
 } from "#src/features/server-status/toggle.ts";
+import { setupWizard } from "#src/features/server-status/wizard.ts";
 import type { CommandHandler } from "#src/utils/command.ts";
 import { config } from "#src/utils/config.ts";
 import i18n from "#src/utils/i18n.ts";
@@ -25,7 +26,6 @@ import {
 	guildCache,
 	isAdminOrManager,
 } from "#src/utils/misc.ts";
-import { setupWizard } from "#src/features/server-status/wizard.ts";
 
 export const cooldown = 5;
 

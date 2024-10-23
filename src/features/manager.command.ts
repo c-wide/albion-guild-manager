@@ -5,6 +5,7 @@ import {
 	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from "discord.js";
+import { and, eq } from "drizzle-orm";
 import { db } from "#src/database/db.ts";
 import { serverSettings } from "#src/database/schema.ts";
 import type { CommandHandler } from "#src/utils/command.ts";
@@ -17,7 +18,6 @@ import {
 	createGenericEmbed,
 	guildCache,
 } from "#src/utils/misc.ts";
-import { and, eq } from "drizzle-orm";
 
 export const cooldown = 5;
 
@@ -287,7 +287,7 @@ async function addManager(
 			: i.options.getUser("user", true).id;
 
 	// Extract current managers from cached guild settings
-	let managers = (cache.settings.get(targetSetting) ?? []) as string[];
+	const managers = (cache.settings.get(targetSetting) ?? []) as string[];
 
 	// Handle manager already existing for this server
 	if (managers.includes(targetId)) {
