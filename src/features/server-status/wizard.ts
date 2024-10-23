@@ -439,6 +439,9 @@ export async function setupWizard(
 	if (confirmationRes.customId === "cancel") {
 		logger.info({ cid }, "User cancelled setup");
 		await i.deleteReply();
+		if (i.guild?.channels.cache.has(channelId)) {
+			await i.guild.channels.delete(channelId);
+		}
 		return;
 	}
 
