@@ -62,6 +62,34 @@ export const serverStatus = {
 				},
 			},
 		},
+		confirmation: {
+			title: "Settings Confirmation",
+			fields: {
+				selectedRegions: "Selected Regions",
+				selectedChannel: "Selected Channel",
+			},
+		},
+		completed: {
+			title: "Setup Completed",
+			desc: "Server status notifications will be posted in <#{{channelId}}>",
+		},
+	},
+	components: {
+		selectChannel: {
+			placeholder: "Select a channel",
+		},
+		createChannel: {
+			title: "Channel Settings",
+			nameInputLabel: "Channel Name",
+			nameInputPlaceholder: "server-status",
+		},
+		channelActions: {
+			createChannel: "Create Channel",
+			selectChannel: "Select Channel",
+		},
+		regionSelect: {
+			placeholder: "Select one or more regions",
+		},
 	},
 	responses: {
 		noPermission: "You lack permission to use this command",
@@ -79,5 +107,13 @@ export const serverStatus = {
 		wrongChannelType: "Please select a text channel",
 		sameChannel: "This channel is already set for notifications",
 		channelSet: "Status notifications will be posted in <#{{channelId}}>",
+		selectChannel: "Select the channel you want status notification to go to",
+		channelSelected:
+			"You selected <#{{channelId}}> channel, finishing setup...",
+		creatingChannel: "Creating channel...",
+		channelCreated:
+			"Successfully created <#{{channelId}}> channel, finishing setup...",
+		channelActionChoice: "Where would you like the status notifications to go?",
+		regionSelect: "Choose which regions you want status notifications for",
 	},
 } as const;

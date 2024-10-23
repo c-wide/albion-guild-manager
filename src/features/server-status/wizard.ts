@@ -1,32 +1,32 @@
+import { until } from "@open-draft/until";
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
-	ButtonInteraction,
+	type ButtonInteraction,
 	ButtonStyle,
 	ChannelSelectMenuBuilder,
 	ChannelType,
-	ChatInputCommandInteraction,
+	type ChatInputCommandInteraction,
 	ComponentType,
 	ModalBuilder,
 	PermissionsBitField,
 	StringSelectMenuBuilder,
-	StringSelectMenuInteraction,
+	type StringSelectMenuInteraction,
 	StringSelectMenuOptionBuilder,
 	TextInputBuilder,
 	TextInputStyle,
 } from "discord.js";
-import { until } from "@open-draft/until";
-import { config, type AlbionServerRegion } from "#src/utils/config.ts";
-import i18n from "#src/utils/i18n.ts";
-import {
-	createGenericEmbed,
-	Settings,
-	type GuildDetails,
-} from "#src/utils/misc.ts";
-import { logger } from "#src/utils/logger.ts";
+import { sql } from "drizzle-orm";
 import { db } from "#src/database/db.ts";
 import { serverSettings } from "#src/database/schema.ts";
-import { sql } from "drizzle-orm";
+import { type AlbionServerRegion, config } from "#src/utils/config.ts";
+import i18n from "#src/utils/i18n.ts";
+import { logger } from "#src/utils/logger.ts";
+import {
+	type GuildDetails,
+	Settings,
+	createGenericEmbed,
+} from "#src/utils/misc.ts";
 
 async function showRegionSelector(
 	cid: string,
@@ -47,7 +47,12 @@ async function showRegionSelector(
 	// Build multi select menu
 	const menu = new StringSelectMenuBuilder()
 		.setCustomId("regionSelector")
-		.setPlaceholder("Select one or more regions")
+		.setPlaceholder(
+			i18n.t("serverStatus.components.regionSelect.placeholder", {
+				ns: "commands",
+				lng: i.locale,
+			}),
+		)
 		.addOptions(options)
 		.setMinValues(1)
 		.setMaxValues(config.albionServerRegions.length);
@@ -59,7 +64,10 @@ async function showRegionSelector(
 
 	// Respond to user
 	const res = await i.reply({
-		content: "Choose which regions you want status notifications for",
+		content: i18n.t("serverStatus.responses.regionSelect", {
+			ns: "commands",
+			lng: i.locale,
+		}),
 		components: [row],
 		ephemeral: true,
 	});
@@ -91,12 +99,22 @@ async function showChannelActions(
 	// Create buttons
 	const createChannelButton = new ButtonBuilder()
 		.setCustomId("createChannel")
-		.setLabel("Create Channel")
+		.setLabel(
+			i18n.t("serverStatus.components.channelActions.createChannel", {
+				ns: "commands",
+				lng: i.locale,
+			}),
+		)
 		.setStyle(ButtonStyle.Primary);
 
 	const selectChannelButton = new ButtonBuilder()
 		.setCustomId("selectChannel")
-		.setLabel("Select Channel")
+		.setLabel(
+			i18n.t("serverStatus.components.channelActions.selectChannel", {
+				ns: "commands",
+				lng: i.locale,
+			}),
+		)
 		.setStyle(ButtonStyle.Primary);
 
 	// Create action row
@@ -107,7 +125,10 @@ async function showChannelActions(
 
 	// Send response to user
 	const res = await i.update({
-		content: "Where would you like the status notifications to go?",
+		content: i18n.t("serverStatus.responses.channelActionChoice", {
+			ns: "commands",
+			lng: i.locale,
+		}),
 		components: [row],
 	});
 
@@ -136,16 +157,29 @@ async function createChannel(
 	i: ButtonInteraction,
 ): Promise<string | null> {
 	// Create initial modal
-	const modal = new ModalBuilder()
-		.setCustomId("createChannelModel")
-		.setTitle("Channel Settings");
+	const modal = new ModalBuilder().setCustomId("createChannelModel").setTitle(
+		i18n.t("serverStatus.components.createChannel.title", {
+			ns: "commands",
+			lng: i.locale,
+		}),
+	);
 
 	// Create channel name input
 	const nameInput = new TextInputBuilder()
 		.setCustomId("channelNameInput")
-		.setLabel("Channel Name")
+		.setLabel(
+			i18n.t("serverStatus.components.createChannel.nameInputLabel", {
+				ns: "commands",
+				lng: i.locale,
+			}),
+		)
 		.setStyle(TextInputStyle.Short)
-		.setPlaceholder("server-status")
+		.setPlaceholder(
+			i18n.t("serverStatus.components.createChannel.nameInputPlaceholder", {
+				ns: "commands",
+				lng: i.locale,
+			}),
+		)
 		.setRequired(true);
 
 	// Create action row
@@ -176,7 +210,10 @@ async function createChannel(
 
 	// Update user were creating their channel
 	await data.update({
-		content: "Creating channel...",
+		content: i18n.t("serverStatus.responses.creatingChannel", {
+			ns: "commands",
+			lng: i.locale,
+		}),
 		components: [],
 	});
 
@@ -214,7 +251,11 @@ async function createChannel(
 
 	// Let the user know we created their channel successfully
 	await data.editReply({
-		content: `Successfully created <#${channel.id}> channel, finishing setup...`,
+		content: i18n.t("serverStatus.responses.channelCreated", {
+			channelId: channel.id,
+			ns: "commands",
+			lng: i.locale,
+		}),
 	});
 
 	// Return the channel id
@@ -228,7 +269,12 @@ async function showChannelSelector(
 	// Create channel selector menu
 	const menu = new ChannelSelectMenuBuilder()
 		.setCustomId("channelSelector")
-		.setPlaceholder("Select a channel")
+		.setPlaceholder(
+			i18n.t("serverStatus.components.selectChannel.placeholder", {
+				ns: "commands",
+				lng: i.locale,
+			}),
+		)
 		.setChannelTypes(ChannelType.GuildText);
 
 	// Create action row
@@ -238,7 +284,10 @@ async function showChannelSelector(
 
 	// Send channel selector to the user
 	const res = await i.update({
-		content: "Select the channel you want status notification to go to",
+		content: i18n.t("serverStatus.responses.selectChannel", {
+			ns: "commands",
+			lng: i.locale,
+		}),
 		components: [row],
 	});
 
@@ -263,7 +312,11 @@ async function showChannelSelector(
 
 	// Update user with the channel they selected
 	await data.update({
-		content: `You selected <#${channelId}> channel, finishing setup...`,
+		content: i18n.t("serverStatus.responses.channelSelected", {
+			channelId,
+			ns: "commands",
+			lng: i.locale,
+		}),
 		components: [],
 	});
 
@@ -280,12 +333,17 @@ async function showConfirmation(
 	// Create buttons
 	const confirmButton = new ButtonBuilder()
 		.setCustomId("confirm")
-		.setLabel("Confirm")
+		.setLabel(
+			i18n.t("phrases.confirm", {
+				ns: "common",
+				lng: i.locale,
+			}),
+		)
 		.setStyle(ButtonStyle.Primary);
 
 	const cancelButton = new ButtonBuilder()
 		.setCustomId("cancel")
-		.setLabel("Cancel")
+		.setLabel(i18n.t("phrases.cancel", { ns: "common", lng: i.locale }))
 		.setStyle(ButtonStyle.Secondary);
 
 	// Create action row
@@ -299,16 +357,25 @@ async function showConfirmation(
 		content: "",
 		embeds: [
 			createGenericEmbed({
-				title: "Settings Confirmation",
+				title: i18n.t("serverStatus.embeds.confirmation.title", {
+					ns: "commands",
+					lng: i.locale,
+				}),
 				description: " ",
 				fields: [
 					{
-						name: "Selected Regions",
+						name: i18n.t(
+							"serverStatus.embeds.confirmation.fields.selectedRegions",
+							{ ns: "commands", lng: i.locale },
+						),
 						value: regions.join("\n"),
 						inline: true,
 					},
 					{
-						name: "Selected Channel",
+						name: i18n.t(
+							"serverStatus.embeds.confirmation.fields.selectedChannel",
+							{ ns: "commands", lng: i.locale },
+						),
 						value: `<#${channelId}>`,
 						inline: true,
 					},
@@ -339,7 +406,6 @@ async function showConfirmation(
 	return data;
 }
 
-// TODO: i18n
 export async function setupWizard(
 	cid: string,
 	i: ChatInputCommandInteraction,
@@ -419,8 +485,15 @@ export async function setupWizard(
 		content: " ",
 		embeds: [
 			createGenericEmbed({
-				title: "Setup Completed",
-				description: `Server status notifications will be posted in <#${channelId}>`,
+				title: i18n.t("serverStatus.embeds.completed.title", {
+					ns: "commands",
+					lng: i.locale,
+				}),
+				description: i18n.t("serverStatus.embeds.completed.desc", {
+					channelId,
+					ns: "commands",
+					lng: i.locale,
+				}),
 				color: config.colors.success,
 			}),
 		],

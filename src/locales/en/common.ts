@@ -51,6 +51,8 @@ export const common = {
 		tag: "Tag",
 		guildHistory: "Guild History",
 		correlationId: "Correlation ID",
+		confirm: "Confirm",
+		cancel: "Cancel",
 	},
 	error: {
 		killboardAPI:
