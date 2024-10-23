@@ -41,7 +41,7 @@ export async function genericSearch(
 		}
 		case "alliance": {
 			const res = await fetch(
-				`https://albion-registry-api.fly.dev/search/entities/${serverRegion.toLowerCase()}?q=${searchTerm}`,
+				`https://registry-api.albion.tools/search/entities/${serverRegion.toLowerCase()}?q=${searchTerm}`,
 			);
 
 			if (!res.ok) {

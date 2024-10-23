@@ -8,7 +8,7 @@ import i18n from "#src/utils/i18n.ts";
 const linkMap = {
 	albionRegistry: {
 		name: "Albion Registry",
-		url: "https://albion-registry-website.vercel.app",
+		url: "https://registry.albion.tools",
 	},
 	albionbb: {
 		name: "albionbb",
