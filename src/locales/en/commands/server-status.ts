@@ -1,7 +1,7 @@
 export const serverStatus = {
 	name: "serverstatus",
 	desc: "Configure Albion Online server status notifications",
-	group: {
+	groups: {
 		regions: {
 			name: "regions",
 			desc: "Manage tracked server regions",

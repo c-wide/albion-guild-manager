@@ -1,6 +1,5 @@
 import type { ChatInputCommandInteraction } from "discord.js";
 import type { AlbionServerRegion } from "#src/utils/config.ts";
-import i18n from "#src/utils/i18n.ts";
 
 export type EntityType = "player" | "guild" | "alliance";
 export type SearchOptions = {
@@ -17,20 +16,14 @@ export function parseOptions(i: ChatInputCommandInteraction): SearchOptions {
 		| "alliance";
 
 	const serverRegion = i.options.getString(
-		i18n.t("option.serverRegion.name", { ns: "common", lng: "en" }),
+		"server_region",
 		true,
 	) as AlbionServerRegion;
 
-	const searchTerm = i.options.getString(
-		i18n.t("lookup.option.searchTerm.name", { ns: "commands", lng: "en" }),
-		true,
-	);
+	const searchTerm = i.options.getString("search_term", true);
 
 	// Default value is false
-	const isPublic =
-		i.options.getBoolean(
-			i18n.t("option.isPublic.name", { ns: "common", lng: "en" }),
-		) ?? false;
+	const isPublic = i.options.getBoolean("is_public") ?? false;
 
 	return { entityType, serverRegion, searchTerm, isPublic };
 }

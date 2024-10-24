@@ -1,7 +1,7 @@
 export const managers = {
 	name: "managers",
 	desc: "Manage bot administrator roles and users",
-	group: {
+	groups: {
 		add: {
 			name: "add",
 			desc: "Grant bot management permissions",

@@ -31,9 +31,9 @@ export const cooldown = 5;
 
 const serverRegionOption: OptionFunc<SlashCommandStringOption> = (option) =>
 	option
-		.setName(i18n.t("option.serverRegion.name", { ns: "common", lng: "en" }))
+		.setName(i18n.t("options.serverRegion.name", { ns: "common", lng: "en" }))
 		.setDescription(
-			i18n.t("option.serverRegion.desc", { ns: "common", lng: "en" }),
+			i18n.t("options.serverRegion.desc", { ns: "common", lng: "en" }),
 		)
 		.setRequired(true)
 		.addChoices(
@@ -129,13 +129,13 @@ export const builder = new SlashCommandBuilder()
 	.addSubcommandGroup((group) =>
 		group
 			.setName(
-				i18n.t("serverStatus.group.regions.name", {
+				i18n.t("serverStatus.groups.regions.name", {
 					ns: "commands",
 					lng: "en",
 				}),
 			)
 			.setDescription(
-				i18n.t("serverStatus.group.regions.desc", {
+				i18n.t("serverStatus.groups.regions.desc", {
 					ns: "commands",
 					lng: "en",
 				}),
@@ -143,13 +143,13 @@ export const builder = new SlashCommandBuilder()
 			.addSubcommand((subcommand) =>
 				subcommand
 					.setName(
-						i18n.t("serverStatus.group.regions.subcommands.add.name", {
+						i18n.t("serverStatus.groups.regions.subcommands.add.name", {
 							ns: "commands",
 							lng: "en",
 						}),
 					)
 					.setDescription(
-						i18n.t("serverStatus.group.regions.subcommands.add.desc", {
+						i18n.t("serverStatus.groups.regions.subcommands.add.desc", {
 							ns: "commands",
 							lng: "en",
 						}),
@@ -159,13 +159,13 @@ export const builder = new SlashCommandBuilder()
 			.addSubcommand((subcommand) =>
 				subcommand
 					.setName(
-						i18n.t("serverStatus.group.regions.subcommands.remove.name", {
+						i18n.t("serverStatus.groups.regions.subcommands.remove.name", {
 							ns: "commands",
 							lng: "en",
 						}),
 					)
 					.setDescription(
-						i18n.t("serverStatus.group.regions.subcommands.remove.desc", {
+						i18n.t("serverStatus.groups.regions.subcommands.remove.desc", {
 							ns: "commands",
 							lng: "en",
 						}),
@@ -175,13 +175,13 @@ export const builder = new SlashCommandBuilder()
 			.addSubcommand((subcommand) =>
 				subcommand
 					.setName(
-						i18n.t("serverStatus.group.regions.subcommands.view.name", {
+						i18n.t("serverStatus.groups.regions.subcommands.view.name", {
 							ns: "commands",
 							lng: "en",
 						}),
 					)
 					.setDescription(
-						i18n.t("serverStatus.group.regions.subcommands.view.desc", {
+						i18n.t("serverStatus.groups.regions.subcommands.view.desc", {
 							ns: "commands",
 							lng: "en",
 						}),

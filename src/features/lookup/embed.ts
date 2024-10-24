@@ -5,6 +5,8 @@ import type { EntityDetails } from "#src/features/lookup/search.ts";
 import { config } from "#src/utils/config.ts";
 import i18n from "#src/utils/i18n.ts";
 
+// TODO: add albion db
+
 const linkMap = {
 	albionRegistry: {
 		name: "Albion Registry",
@@ -51,7 +53,10 @@ function createField(
 ): APIEmbedField {
 	return {
 		// @ts-ignore
-		name: i18n.t(`phrases.${key}`, { ns: "common", lng: locale }),
+		name: i18n.t(`lookup.embeds.entityDetails.${key}`, {
+			ns: "commands",
+			lng: locale,
+		}),
 		value:
 			typeof value === "number"
 				? new Intl.NumberFormat(locale).format(value)
@@ -68,67 +73,60 @@ function createEmptyField(inline: boolean): APIEmbedField {
 	};
 }
 
-function createPveOrGatherField(
-	target: PVE | Gathering,
-	i18nFieldMaps: {
-		key: string;
-		field: string;
-	}[],
-	lng: Locale,
-): APIEmbedField {
-	const identifier = "Royal" in target ? "pve" : "gathering";
+function createPveField(pve: PVE, locale: Locale): APIEmbedField {
+	const orderedKeys = [
+		"Royal",
+		"Outlands",
+		"Avalon",
+		"Hellgate",
+		"CorruptedDungeon",
+		"Mists",
+		"Total",
+	] as const;
 
-	const value = i18nFieldMaps
-		.map((fieldMap) => {
-			// Extract value from generic target
-			const container = target[fieldMap.field as keyof typeof target] as
-				| number
-				| Record<string, number>;
-
-			// If target is Gathering the total is stored in an obj
-			const targetValue =
-				typeof container === "object" ? container.Total : container;
-
+	const value = orderedKeys
+		.map((key) =>
 			// @ts-ignore
-			return `**${i18n.t(`phrases.${fieldMap.key}Label`, {
-				ns: "common",
-				lng,
-			})}** *${targetValue.toLocaleString(lng)}*`;
-		})
+			i18n.t(`lookup.embeds.entityDetails.${key.toLowerCase()}`, {
+				val: pve[key],
+				ns: "commands",
+				lng: locale,
+			}),
+		)
 		.join("\n");
 
 	return {
-		name: i18n.t(`phrases.${identifier}Fame`, { ns: "common", lng }),
+		name: i18n.t("lookup.embeds.entityDetails.pveFame", {
+			ns: "commands",
+			lng: locale,
+		}),
 		value,
 		inline: true,
 	};
 }
 
-function createPveField(pve: PVE, locale: Locale): APIEmbedField {
-	const i18nFieldMaps = [
-		{ key: "royal", field: "Royal" },
-		{ key: "outlands", field: "Outlands" },
-		{ key: "avalon", field: "Avalon" },
-		{ key: "hg", field: "Hellgate" },
-		{ key: "corrupted", field: "CorruptedDungeon" },
-		{ key: "mists", field: "Mists" },
-		{ key: "total", field: "Total" },
-	];
-
-	return createPveOrGatherField(pve, i18nFieldMaps, locale);
-}
-
 function createGatherField(gather: Gathering, locale: Locale): APIEmbedField {
-	const i18nFieldMaps = [
-		{ key: "fiber", field: "Fiber" },
-		{ key: "hide", field: "Hide" },
-		{ key: "ore", field: "Ore" },
-		{ key: "stone", field: "Rock" },
-		{ key: "wood", field: "Wood" },
-		{ key: "total", field: "All" },
-	];
+	const orderedKeys = ["Fiber", "Hide", "Ore", "Rock", "Wood", "All"] as const;
 
-	return createPveOrGatherField(gather, i18nFieldMaps, locale);
+	const value = orderedKeys
+		.map((key) =>
+			// @ts-ignore
+			i18n.t(`lookup.embeds.entityDetails.${key.toLowerCase()}`, {
+				val: gather[key].Total,
+				ns: "commands",
+				lng: locale,
+			}),
+		)
+		.join("\n");
+
+	return {
+		name: i18n.t("lookup.embeds.entityDetails.gatheringFame", {
+			ns: "commands",
+			lng: locale,
+		}),
+		value,
+		inline: true,
+	};
 }
 
 type Links = {
@@ -141,28 +139,34 @@ type Links = {
 function createLinksField(links: Links, lng: Locale): APIEmbedField {
 	const value = links
 		.map((link) => {
-			// @ts-ignore
-			const label = `[${i18n.t(`phrases.${link.labeli18nKey}`, {
-				ns: "common",
-				lng,
-			})}](${link.labelUrl})`;
+			const label = `[${i18n.t(
+				// @ts-ignore
+				`lookup.embeds.entityDetails.${link.labeli18nKey}`,
+				{
+					ns: "commands",
+					lng,
+				},
+			)}](${link.labelUrl})`;
 
-			const pb = `${i18n.t("phrases.poweredByLabel", {
+			const pb = i18n.t("lookup.embeds.entityDetails.poweredByLabel", {
 				name: link.pbName,
 				url: link.pbUrl,
-				ns: "common",
+				ns: "commands",
 				lng,
 				interpolation: {
 					escapeValue: false,
 				},
-			})}`;
+			});
 
 			return `${label}${pb}`;
 		})
 		.join("\n");
 
 	return {
-		name: i18n.t("phrases.link_other", { ns: "common", lng }),
+		name: i18n.t("lookup.embeds.entityDetails.link_other", {
+			ns: "commands",
+			lng,
+		}),
 		value,
 		inline: false,
 	};
@@ -221,7 +225,9 @@ function createPlayerEmbed(
 	];
 
 	return new EmbedBuilder()
-		.setTitle(i18n.t("phrases.playerInfo", { ns: "common", lng }))
+		.setTitle(
+			i18n.t("lookup.embeds.entityDetails.playerInfo", { ns: "commands", lng }),
+		)
 		.addFields(fields)
 		.setColor(config.colors.info);
 }
@@ -274,7 +280,9 @@ function createGuildEmbed(
 	];
 
 	return new EmbedBuilder()
-		.setTitle(i18n.t("phrases.guildInfo", { ns: "common", lng }))
+		.setTitle(
+			i18n.t("lookup.embeds.entityDetails.guildInfo", { ns: "commands", lng }),
+		)
 		.addFields(fields)
 		.setColor(config.colors.info);
 }
@@ -325,7 +333,9 @@ function createAllianceEmbed(
 	];
 
 	return new EmbedBuilder()
-		.setTitle(i18n.t("phrases.allyInfo", { ns: "common", lng }))
+		.setTitle(
+			i18n.t("lookup.embeds.entityDetails.allyInfo", { ns: "commands", lng }),
+		)
 		.addFields(fields)
 		.setColor(config.colors.info);
 }

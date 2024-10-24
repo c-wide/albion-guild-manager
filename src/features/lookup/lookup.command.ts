@@ -20,18 +20,16 @@ import {
 	type OptionFunc,
 	createErrorEmbed,
 	createGenericEmbed,
-	getServerId,
+	getErrorMessage,
 } from "#src/utils/misc.ts";
-
-// TODO: if only 1 result, just search for it
 
 export const cooldown = 10;
 
 const serverRegionOption: OptionFunc<SlashCommandStringOption> = (option) =>
 	option
-		.setName(i18n.t("option.serverRegion.name", { ns: "common", lng: "en" }))
+		.setName(i18n.t("options.serverRegion.name", { ns: "common", lng: "en" }))
 		.setDescription(
-			i18n.t("option.serverRegion.desc", { ns: "common", lng: "en" }),
+			i18n.t("options.serverRegion.desc", { ns: "common", lng: "en" }),
 		)
 		.setRequired(true)
 		.addChoices(
@@ -47,17 +45,19 @@ const serverRegionOption: OptionFunc<SlashCommandStringOption> = (option) =>
 const searchTermOption: OptionFunc<SlashCommandStringOption> = (option) =>
 	option
 		.setName(
-			i18n.t("lookup.option.searchTerm.name", { ns: "commands", lng: "en" }),
+			i18n.t("lookup.options.searchTerm.name", { ns: "commands", lng: "en" }),
 		)
 		.setDescription(
-			i18n.t("lookup.option.searchTerm.desc", { ns: "commands", lng: "en" }),
+			i18n.t("lookup.options.searchTerm.desc", { ns: "commands", lng: "en" }),
 		)
 		.setRequired(true);
 
 const isPublicOption: OptionFunc<SlashCommandBooleanOption> = (option) =>
 	option
-		.setName(i18n.t("option.isPublic.name", { ns: "common", lng: "en" }))
-		.setDescription(i18n.t("option.isPublic.desc", { ns: "common", lng: "en" }))
+		.setName(i18n.t("options.isPublic.name", { ns: "common", lng: "en" }))
+		.setDescription(
+			i18n.t("options.isPublic.desc", { ns: "common", lng: "en" }),
+		)
 		.setRequired(false);
 
 export const builder = new SlashCommandBuilder()
@@ -106,16 +106,10 @@ export const builder = new SlashCommandBuilder()
 			.addBooleanOption(isPublicOption),
 	);
 
-// TODO: update to use cid
-export const handler: CommandHandler = async ({ i }) => {
+export const handler: CommandHandler = async ({ cid, i }) => {
 	// Parse command options
 	const options = parseOptions(i);
 	const { entityType, searchTerm, serverRegion, isPublic } = options;
-
-	logger.info(
-		{ serverId: getServerId(i.guildId), userId: i.user.id, ...options },
-		"Lookup command details",
-	);
 
 	// Initial deferral to prevent timeouts
 	await i.deferReply({ ephemeral: !isPublic });
@@ -127,8 +121,8 @@ export const handler: CommandHandler = async ({ i }) => {
 
 	// If there was an error while searching, log & send generic error response
 	if (searchError) {
-		logger.error(
-			{ ...options, error: searchError },
+		logger.info(
+			{ cid, ...options, error: getErrorMessage(searchError) },
 			"Error while performing search",
 		);
 		await i.followUp({
@@ -136,8 +130,8 @@ export const handler: CommandHandler = async ({ i }) => {
 			components: [],
 			embeds: [
 				createErrorEmbed(
-					"TBD",
-					i18n.t("error.killboardAPI", { ns: "common", lng: i.locale }),
+					cid,
+					i18n.t("responses.killboardErr", { ns: "common", lng: i.locale }),
 					i.locale,
 				),
 			],
@@ -147,19 +141,20 @@ export const handler: CommandHandler = async ({ i }) => {
 
 	// Handle response if there are no search results
 	if (searchResults.length === 0) {
+		logger.info({ cid, ...options }, "No search results");
 		await i.followUp({
 			content: "",
 			components: [],
 			embeds: [
 				createGenericEmbed({
-					title: i18n.t("response.noResults.title", {
-						ns: "common",
+					title: i18n.t("lookup.embeds.noResults.title", {
+						ns: "commands",
 						lng: i.locale,
 					}),
-					description: i18n.t("response.noResults.desc", {
+					description: i18n.t("lookup.embeds.noResults.desc", {
 						entityType,
 						searchTerm,
-						ns: "common",
+						ns: "commands",
 						lng: i.locale,
 					}),
 				}),
@@ -167,6 +162,8 @@ export const handler: CommandHandler = async ({ i }) => {
 		});
 		return;
 	}
+
+	// TODO: handle only 1 search result
 
 	// Send select menu to user with the search results & await response
 	const message = await sendSelectMenu(i, options, searchResults);
@@ -181,30 +178,14 @@ export const handler: CommandHandler = async ({ i }) => {
 
 	// If there was an error here, it's usually because the user didn't make a selection
 	if (messageInteractionError) {
-		await i.editReply({
-			content: "",
-			components: [],
-			embeds: [
-				createGenericEmbed({
-					title: i18n.t("response.noConfim.title", {
-						ns: "common",
-						lng: i.locale,
-					}),
-					description: i18n.t("response.noConfim.desc", {
-						timeframe: "3 minutes",
-						ns: "common",
-						lng: i.locale,
-					}),
-					color: config.colors.warning,
-				}),
-			],
-		});
+		logger.info({ cid, ...options }, "User failed to respond");
+		await i.deleteReply();
 		return;
 	}
 
 	// Update user that we're searching so the select menu response doesn't timeout
 	await messageInteraction.update({
-		content: i18n.t("lookup.response.searching", {
+		content: i18n.t("lookup.responses.searching", {
 			entityType,
 			ns: "commands",
 			lng: i.locale,
@@ -220,8 +201,8 @@ export const handler: CommandHandler = async ({ i }) => {
 
 	// If there was an error while searching for details, log & send generic error response
 	if (entityDetailsError) {
-		logger.error(
-			{ ...options, error: entityDetailsError },
+		logger.info(
+			{ cid, ...options, error: getErrorMessage(entityDetailsError) },
 			"Error while fetching entity details",
 		);
 		await messageInteraction.editReply({
@@ -229,14 +210,17 @@ export const handler: CommandHandler = async ({ i }) => {
 			components: [],
 			embeds: [
 				createErrorEmbed(
-					"TBD",
-					i18n.t("error.killboardAPI", { ns: "common", lng: i.locale }),
+					cid,
+					i18n.t("responses.killboardErr", { ns: "common", lng: i.locale }),
 					i.locale,
 				),
 			],
 		});
 		return;
 	}
+
+	// Log things
+	logger.info({ cid, ...options }, "Displaying entity details");
 
 	// If everything went well, send a response with the detailed information
 	await messageInteraction.editReply({

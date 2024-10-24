@@ -18,6 +18,5 @@ startServerStatusInterval(manager);
 
 // TODO: middleware system for stuff like changes to servers?
 // TODO: add name localizaitons to command builders
-// TODO: eventually redo lookup i18n to match new format
 // TODO: unhandled rejection and uncaught exceptions
 // TODO: need a good way to remove registered commands while developing

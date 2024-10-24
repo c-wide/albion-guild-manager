@@ -30,9 +30,9 @@ export async function genericSearch(
 			return res[entityType === "player" ? "players" : "guilds"].map(
 				(entity) => ({
 					label: entity.Name,
-					description: i18n.t("phrases.idDesc", {
+					description: i18n.t("lookup.components.genericSearch.idDesc", {
 						id: entity.Id,
-						ns: "common",
+						ns: "commands",
 						lng,
 					}),
 					value: entity.Id,
@@ -59,9 +59,9 @@ export async function genericSearch(
 				.filter((d) => d.type === "alliance")
 				.map((d) => ({
 					label: `[${d.tag}] ${d.name}`,
-					description: i18n.t("phrases.idDesc", {
+					description: i18n.t("lookup.components.genericSearch.idDesc", {
 						id: d.id,
-						ns: "common",
+						ns: "commands",
 						lng,
 					}),
 					value: d.id,

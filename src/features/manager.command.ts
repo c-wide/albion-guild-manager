@@ -26,20 +26,22 @@ export const builder = new SlashCommandBuilder()
 	.setDescription(i18n.t("managers.desc", { ns: "commands", lng: "en" }))
 	.addSubcommandGroup((group) =>
 		group
-			.setName(i18n.t("managers.group.add.name", { ns: "commands", lng: "en" }))
+			.setName(
+				i18n.t("managers.groups.add.name", { ns: "commands", lng: "en" }),
+			)
 			.setDescription(
-				i18n.t("managers.group.add.desc", { ns: "commands", lng: "en" }),
+				i18n.t("managers.groups.add.desc", { ns: "commands", lng: "en" }),
 			)
 			.addSubcommand((subcommand) =>
 				subcommand
 					.setName(
-						i18n.t("managers.group.add.subcommands.role.name", {
+						i18n.t("managers.groups.add.subcommands.role.name", {
 							ns: "commands",
 							lng: "en",
 						}),
 					)
 					.setDescription(
-						i18n.t("managers.group.add.subcommands.role.desc", {
+						i18n.t("managers.groups.add.subcommands.role.desc", {
 							ns: "commands",
 							lng: "en",
 						}),
@@ -48,13 +50,13 @@ export const builder = new SlashCommandBuilder()
 						option
 							.setName(
 								i18n.t(
-									"managers.group.add.subcommands.role.options.role.name",
+									"managers.groups.add.subcommands.role.options.role.name",
 									{ ns: "commands", lng: "en" },
 								),
 							)
 							.setDescription(
 								i18n.t(
-									"managers.group.add.subcommands.role.options.role.desc",
+									"managers.groups.add.subcommands.role.options.role.desc",
 									{ ns: "commands", lng: "en" },
 								),
 							)
@@ -64,13 +66,13 @@ export const builder = new SlashCommandBuilder()
 			.addSubcommand((subcommand) =>
 				subcommand
 					.setName(
-						i18n.t("managers.group.add.subcommands.user.name", {
+						i18n.t("managers.groups.add.subcommands.user.name", {
 							ns: "commands",
 							lng: "en",
 						}),
 					)
 					.setDescription(
-						i18n.t("managers.group.add.subcommands.user.desc", {
+						i18n.t("managers.groups.add.subcommands.user.desc", {
 							ns: "commands",
 							lng: "en",
 						}),
@@ -79,13 +81,13 @@ export const builder = new SlashCommandBuilder()
 						option
 							.setName(
 								i18n.t(
-									"managers.group.add.subcommands.user.options.user.name",
+									"managers.groups.add.subcommands.user.options.user.name",
 									{ ns: "commands", lng: "en" },
 								),
 							)
 							.setDescription(
 								i18n.t(
-									"managers.group.add.subcommands.user.options.user.desc",
+									"managers.groups.add.subcommands.user.options.user.desc",
 									{ ns: "commands", lng: "en" },
 								),
 							)
@@ -96,21 +98,21 @@ export const builder = new SlashCommandBuilder()
 	.addSubcommandGroup((group) =>
 		group
 			.setName(
-				i18n.t("managers.group.remove.name", { ns: "commands", lng: "en" }),
+				i18n.t("managers.groups.remove.name", { ns: "commands", lng: "en" }),
 			)
 			.setDescription(
-				i18n.t("managers.group.remove.desc", { ns: "commands", lng: "en" }),
+				i18n.t("managers.groups.remove.desc", { ns: "commands", lng: "en" }),
 			)
 			.addSubcommand((subcommand) =>
 				subcommand
 					.setName(
-						i18n.t("managers.group.remove.subcommands.role.name", {
+						i18n.t("managers.groups.remove.subcommands.role.name", {
 							ns: "commands",
 							lng: "en",
 						}),
 					)
 					.setDescription(
-						i18n.t("managers.group.remove.subcommands.role.desc", {
+						i18n.t("managers.groups.remove.subcommands.role.desc", {
 							ns: "commands",
 							lng: "en",
 						}),
@@ -119,13 +121,13 @@ export const builder = new SlashCommandBuilder()
 						option
 							.setName(
 								i18n.t(
-									"managers.group.remove.subcommands.role.options.role.name",
+									"managers.groups.remove.subcommands.role.options.role.name",
 									{ ns: "commands", lng: "en" },
 								),
 							)
 							.setDescription(
 								i18n.t(
-									"managers.group.remove.subcommands.role.options.role.desc",
+									"managers.groups.remove.subcommands.role.options.role.desc",
 									{ ns: "commands", lng: "en" },
 								),
 							)
@@ -135,13 +137,13 @@ export const builder = new SlashCommandBuilder()
 			.addSubcommand((subcommand) =>
 				subcommand
 					.setName(
-						i18n.t("managers.group.remove.subcommands.user.name", {
+						i18n.t("managers.groups.remove.subcommands.user.name", {
 							ns: "commands",
 							lng: "en",
 						}),
 					)
 					.setDescription(
-						i18n.t("managers.group.remove.subcommands.user.desc", {
+						i18n.t("managers.groups.remove.subcommands.user.desc", {
 							ns: "commands",
 							lng: "en",
 						}),
@@ -150,13 +152,13 @@ export const builder = new SlashCommandBuilder()
 						option
 							.setName(
 								i18n.t(
-									"managers.group.remove.subcommands.user.options.user.name",
+									"managers.groups.remove.subcommands.user.options.user.name",
 									{ ns: "commands", lng: "en" },
 								),
 							)
 							.setDescription(
 								i18n.t(
-									"managers.group.remove.subcommands.user.options.user.desc",
+									"managers.groups.remove.subcommands.user.options.user.desc",
 									{ ns: "commands", lng: "en" },
 								),
 							)
