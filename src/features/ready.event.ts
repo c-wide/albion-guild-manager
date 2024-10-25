@@ -1,5 +1,10 @@
 import { until } from "@open-draft/until";
-import type { Collection, Guild } from "discord.js";
+import {
+	ActivityType,
+	type Client,
+	type Collection,
+	type Guild,
+} from "discord.js";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "#src/database/db.ts";
 import { serverSettings, servers } from "#src/database/schema.ts";
@@ -16,6 +21,9 @@ export const name: EventName = "ready";
 export const once = true;
 
 export const handler: EventHandler<typeof name> = async (c) => {
+	// Start bot presence interval
+	startPresenceInterval(c);
+
 	// Fetch guild details from DB for all guilds this shard will manage
 	const storedGuilds = await getStoredGuilds(c.guilds.cache.map((g) => g.id));
 
@@ -29,6 +37,37 @@ export const handler: EventHandler<typeof name> = async (c) => {
 
 	logger.info({ shardId: getShardId(c) }, "Shard Ready");
 };
+
+function startPresenceInterval(c: Client<true>): void {
+	// Set initial presence
+	updatePresence(c);
+
+	// Calculate seconds until next minute, converting to milliseconds for setTimeout
+	const now = new Date();
+	const msUntilNextMinute = (60 - now.getUTCSeconds()) * 1000;
+
+	// First timeout to sync to exact minute
+	setTimeout(() => {
+		updatePresence(c);
+		// Then start the regular interval
+		setInterval(() => updatePresence(c), 60_000);
+	}, msUntilNextMinute);
+}
+
+function updatePresence(c: Client<true>): void {
+	c.user.setPresence({
+		activities: [
+			{
+				type: ActivityType.Custom,
+				name: "current_utc",
+				state: `🌐 ${new Date()
+					.toUTCString()
+					.split(" ")[4]
+					.substring(0, 5)} UTC`,
+			},
+		],
+	});
+}
 
 async function getStoredGuilds(
 	discordGuildIds: string[],

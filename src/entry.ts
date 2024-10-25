@@ -16,7 +16,7 @@ await manager.spawn();
 
 startServerStatusInterval(manager);
 
+// TODO: request coalescing to prevent external API overusage
 // TODO: middleware system for stuff like changes to servers?
 // TODO: add name localizaitons to command builders
 // TODO: unhandled rejection and uncaught exceptions
-// TODO: need a good way to remove registered commands while developing
