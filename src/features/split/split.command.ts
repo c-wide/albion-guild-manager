@@ -28,6 +28,8 @@ import { config } from "#src/utils/config.ts";
 
 export const cooldown = 5;
 
+// TODO: add role command for ppl that can manage splits?
+
 export const builder = new SlashCommandBuilder()
 	.setName("split")
 	.setDescription("Manage loot splits and balances for your guild")
@@ -353,11 +355,29 @@ async function createNewSplit(
 				// Typescript non-sense
 				if (!data.isFromMessage()) return;
 
-				const newRate = data.fields.getTextInputValue("taxInput");
+				const newRate = Number(data.fields.getTextInputValue("taxInput"));
 
-				// TODO: check if it's actually a number
-				// TODO: update value
-				// TODO: regen embed
+				if (!Number.isSafeInteger(newRate) || newRate < 0 || newRate > 100) {
+					await data.reply({
+						content: "Invalid tax rate provided, must be between 0 and 100",
+						ephemeral: true,
+					});
+					return;
+				}
+
+				taxRate = newRate;
+
+				const embed = generateSplitDetailsEmbed(
+					totalAmount,
+					repairCost,
+					taxRate,
+					memberCount,
+					i.locale,
+				);
+
+				await data.update({
+					embeds: [embed],
+				});
 
 				break;
 			case "addMembers":

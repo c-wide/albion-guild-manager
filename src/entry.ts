@@ -18,6 +18,8 @@ startServerStatusInterval(manager);
 
 // FIXME: Fix modal for server status wizard, need filter and custom id
 // TODO: server status channel create should put it into monitoring category
+// TODO: welcome message to inviter DM
+// TODO: feedback cmd?
 // TODO: request coalescing to prevent external API overusage
 // TODO: middleware system for stuff like changes to servers?
 // TODO: add name localizaitons to command builders
