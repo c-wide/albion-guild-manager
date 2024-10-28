@@ -6,17 +6,17 @@ import {
 	ChatInputCommandInteraction,
 	ComponentType,
 	EmbedBuilder,
-	GuildMember,
 	InteractionContextType,
+	Locale,
 	ModalBuilder,
 	SlashCommandBuilder,
 	TextInputBuilder,
 	TextInputStyle,
 	UserSelectMenuBuilder,
 	type ModalActionRowComponentBuilder,
-	type Snowflake,
 } from "discord.js";
-import type { CommandHandler } from "#src/utils/command.js";
+import { until } from "@open-draft/until";
+import type { CommandHandler } from "#src/utils/command.ts";
 import {
 	createGenericEmbed,
 	guildCache,
@@ -25,7 +25,6 @@ import {
 } from "#src/utils/misc.ts";
 import { logger } from "#src/utils/logger.ts";
 import { config } from "#src/utils/config.ts";
-import { until } from "@open-draft/until";
 
 export const cooldown = 5;
 
@@ -158,40 +157,71 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 	}
 };
 
-async function createNewSplit(
-	cid: string,
-	i: ChatInputCommandInteraction,
-	cache: GuildDetails,
-): Promise<void> {
-	let totalMembers = 0;
-	let taxRate = 10;
-	let totalSplit = 0;
+function calculateSplit(
+	totalAmount: number,
+	repairCost: number,
+	taxRate: number,
+	memberCount: number,
+): { buyerPayment: number; amountPerPerson: number } {
+	if (memberCount === 0) return { buyerPayment: 0, amountPerPerson: 0 };
 
-	const embed = new EmbedBuilder()
+	const afterRepairs = totalAmount - repairCost;
+	const buyerProfit = afterRepairs * (taxRate / 100);
+	const buyerPayment = Math.floor(afterRepairs - buyerProfit);
+	const amountPerPerson = Math.floor(buyerPayment / memberCount);
+
+	return { buyerPayment, amountPerPerson };
+}
+
+function generateSplitDetailsEmbed(
+	totalAmount: number,
+	repairCost: number,
+	taxRate: number,
+	memberCount: number,
+	lng: Locale,
+): EmbedBuilder {
+	const { format: i18nNum } = Intl.NumberFormat(lng);
+
+	const { buyerPayment, amountPerPerson } = calculateSplit(
+		totalAmount,
+		repairCost,
+		taxRate,
+		memberCount,
+	);
+
+	// TODO: i18n tax?
+
+	return new EmbedBuilder()
 		.setTitle("Split Details")
 		.addFields(
-			{
-				name: "Total Members",
-				value: totalMembers.toString(),
-				inline: true,
-			},
+			{ name: "Total Amount", value: i18nNum(totalAmount), inline: true },
+			{ name: "Repair Cost", value: i18nNum(repairCost), inline: true },
 			{ name: "Tax", value: `${taxRate}%`, inline: true },
-			{ name: " ", value: " ", inline: true },
-			{ name: "Total Split", value: totalSplit.toString(), inline: true },
 			{
-				name: "Split Per Person",
-				value:
-					totalMembers !== 0
-						? Math.floor(
-								(totalSplit - totalSplit * (taxRate / 100)) / totalMembers,
-							).toString()
-						: "N/A",
+				name: "Member Count",
+				value: i18nNum(memberCount),
 				inline: true,
 			},
-			{ name: " ", value: " ", inline: true },
+			{
+				name: "Buyer Payment",
+				value: i18nNum(buyerPayment),
+				inline: true,
+			},
+
+			{
+				name: "Amount Per Person",
+				value: i18nNum(amountPerPerson),
+				inline: true,
+			},
 		)
 		.setColor(config.colors.info);
+}
 
+function createButtonRows(): {
+	calcRow: ActionRowBuilder<ButtonBuilder>;
+	membersRow: ActionRowBuilder<ButtonBuilder>;
+	actionsRow: ActionRowBuilder<ButtonBuilder>;
+} {
 	const addMembersBtn = new ButtonBuilder()
 		.setCustomId("addMembers")
 		.setLabel("Add Members")
@@ -202,9 +232,19 @@ async function createNewSplit(
 		.setLabel("Remove Members")
 		.setStyle(ButtonStyle.Primary);
 
+	const addFromVoiceBtn = new ButtonBuilder()
+		.setCustomId("addVoiceMembers")
+		.setLabel("Add From Voice")
+		.setStyle(ButtonStyle.Primary);
+
 	const setTotalBtn = new ButtonBuilder()
-		.setCustomId("setTotal")
-		.setLabel("Set Total")
+		.setCustomId("setTotalAmount")
+		.setLabel("Set Total Amount")
+		.setStyle(ButtonStyle.Primary);
+
+	const setRepairCostBtn = new ButtonBuilder()
+		.setCustomId("setRepairCost")
+		.setLabel("Set Repair Cost")
 		.setStyle(ButtonStyle.Primary);
 
 	const setTaxBtn = new ButtonBuilder()
@@ -222,29 +262,54 @@ async function createNewSplit(
 		.setLabel("Cancel")
 		.setStyle(ButtonStyle.Danger);
 
-	// do I want a cache here?
-	// update database
-	// log initial lootsplit created
-
-	const firstRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-		addMembersBtn,
-		removeMembersBtn,
-	);
-
-	const secondRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+	const calcRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
 		setTotalBtn,
+		setRepairCostBtn,
 		setTaxBtn,
 	);
 
-	const thirdRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+	const membersRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+		addMembersBtn,
+		removeMembersBtn,
+		addFromVoiceBtn,
+	);
+
+	const actionsRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
 		endSplitBtn,
 		cancelSplitBtn,
 	);
 
+	return { calcRow, membersRow, actionsRow };
+}
+
+async function createNewSplit(
+	cid: string,
+	i: ChatInputCommandInteraction,
+	cache: GuildDetails,
+): Promise<void> {
+	let totalAmount = 352876349;
+	let repairCost = 34387645;
+	let taxRate = 10;
+	let memberCount = 84;
+
+	const embed = generateSplitDetailsEmbed(
+		totalAmount,
+		repairCost,
+		taxRate,
+		memberCount,
+		i.locale,
+	);
+
+	const { calcRow, membersRow, actionsRow } = createButtonRows();
+
+	// do I want a cache here?
+	// update database
+	// log initial lootsplit created
+
 	const res = await i.followUp({
 		content: "",
 		embeds: [embed],
-		components: [secondRow, firstRow, thirdRow],
+		components: [calcRow, membersRow, actionsRow],
 	});
 
 	const collector = res.createMessageComponentCollector({
@@ -260,7 +325,7 @@ async function createNewSplit(
 					.setCustomId(`taxRate-${ci.id}`)
 					.setTitle("Set Tax");
 
-				const taxInput = new TextInputBuilder()
+				const input = new TextInputBuilder()
 					.setCustomId("taxInput")
 					.setLabel("Tax Rate")
 					.setValue(taxRate.toString())
@@ -270,8 +335,8 @@ async function createNewSplit(
 					.setStyle(TextInputStyle.Short);
 
 				const row = new ActionRowBuilder<ModalActionRowComponentBuilder>();
-				row.addComponents(taxInput);
 
+				row.addComponents(input);
 				modal.addComponents(row);
 
 				await ci.showModal(modal);
@@ -298,18 +363,10 @@ async function createNewSplit(
 			case "addMembers":
 				// TODO: present select menu
 				// TODO: confirm / cancel buttons
-				const defaultUsers: Snowflake[] = [ci.user.id];
-
-				// FIXME: idk man
-				if (!(ci.member instanceof GuildMember)) return;
-				if (ci.member.voice.channel) {
-					const ids = ci.member.voice.channel.members.keys();
-				}
 
 				const menu = new UserSelectMenuBuilder()
 					.setCustomId(`whoCares`)
 					.setPlaceholder("Select multiple users.")
-					.setDefaultUsers(defaultUsers)
 					.setMinValues(1)
 					.setMaxValues(10);
 
