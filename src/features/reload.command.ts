@@ -28,12 +28,18 @@ export const handler: CommandHandler = async ({ i }) => {
 		return;
 	}
 
-	const fileName = `${commandName}.command.ts`;
-	const files = await readdir(path.join(import.meta.dirname, "../features"), {
-		recursive: true,
-	});
+	const filePaths = await readdir(
+		path.join(import.meta.dirname, "../features"),
+		{
+			recursive: true,
+		},
+	);
 
-	if (!files.includes(fileName)) {
+	const subpath = filePaths.find((fp) =>
+		fp.includes(`${commandName}.command.ts`),
+	);
+
+	if (!subpath) {
 		await i.reply({
 			content: `Cannot find file for the \`${commandName}\` command`,
 			ephemeral: true,
@@ -41,7 +47,7 @@ export const handler: CommandHandler = async ({ i }) => {
 		return;
 	}
 
-	const filePath = path.join(import.meta.dirname, "../features", fileName);
+	const filePath = path.join(import.meta.dirname, "../features", subpath);
 
 	// This won't work in Node
 	delete require.cache[require.resolve(filePath)];
