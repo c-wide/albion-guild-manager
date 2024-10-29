@@ -7,6 +7,7 @@ import {
 	ComponentType,
 	EmbedBuilder,
 	InteractionContextType,
+	InteractionResponse,
 	Locale,
 	ModalBuilder,
 	SlashCommandBuilder,
@@ -320,6 +321,12 @@ async function createNewSplit(
 		time: 3_600_000,
 	});
 
+	// TODO: start splitting this code up
+	// TODO: handle action after split end / cancel
+	// TODO: figure out how to cleanup all messages and collectors
+
+	let isMemberSelectActive = false;
+
 	collector.on("collect", async (ci) => {
 		switch (ci.customId) {
 			case "setTax":
@@ -381,28 +388,46 @@ async function createNewSplit(
 
 				break;
 			case "addMembers":
-				// TODO: present select menu
-				// TODO: confirm / cancel buttons
+				if (isMemberSelectActive) return;
+				isMemberSelectActive = true;
 
 				const menu = new UserSelectMenuBuilder()
-					.setCustomId(`whoCares`)
-					.setPlaceholder("Select multiple users.")
+					.setCustomId(`addMembers-${ci.id}`)
+					.setPlaceholder("Select one or more members")
 					.setMinValues(1)
-					.setMaxValues(10);
+					.setMaxValues(25);
 
-				const row1 =
+				const addMemberMenuRow =
 					new ActionRowBuilder<UserSelectMenuBuilder>().addComponents(menu);
 
+				const confirmBtn = new ButtonBuilder()
+					.setCustomId("confirm")
+					.setLabel("Confirm")
+					.setStyle(ButtonStyle.Primary);
+
+				const cancelBtn = new ButtonBuilder()
+					.setCustomId("cancel")
+					.setLabel("Cancel")
+					.setStyle(ButtonStyle.Danger);
+
+				const addMemberActionRow =
+					new ActionRowBuilder<ButtonBuilder>().addComponents(
+						confirmBtn,
+						cancelBtn,
+					);
+
 				await ci.reply({
-					content: "Select users:",
-					components: [row1],
+					content:
+						"Select members you want to add to the split (Max 25 at a time)",
+					components: [addMemberMenuRow, addMemberActionRow],
+					ephemeral: true,
 				});
 
 				break;
 			case "cancelSplit":
 				collector.stop();
-				// TODO: delete all related messages
-				await i.deleteReply();
+				// TODO: Cleanup all responses and collectors
+				await ci.deleteReply();
 				break;
 		}
 	});
