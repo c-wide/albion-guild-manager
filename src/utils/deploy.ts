@@ -12,6 +12,7 @@ const commands: string[] = [];
 // The generator will handle validating the schema and displaying errors.
 try {
 	for await (const file of commandFiles()) {
+		if (file.builder.name === "reload" && !env.DISCORD_GUILD_ID) continue;
 		commands.push(file.builder.toJSON());
 	}
 } catch (_) {
