@@ -1,31 +1,14 @@
 import assert from "node:assert";
-import {
-	ActionRowBuilder,
-	ButtonBuilder,
-	ButtonStyle,
-	ChatInputCommandInteraction,
-	ComponentType,
-	EmbedBuilder,
-	InteractionContextType,
-	InteractionResponse,
-	Locale,
-	ModalBuilder,
-	SlashCommandBuilder,
-	TextInputBuilder,
-	TextInputStyle,
-	UserSelectMenuBuilder,
-	type ModalActionRowComponentBuilder,
-} from "discord.js";
-import { until } from "@open-draft/until";
+import { InteractionContextType, SlashCommandBuilder } from "discord.js";
 import type { CommandHandler } from "#src/utils/command.ts";
+import { config } from "#src/utils/config.ts";
+import { logger } from "#src/utils/logger.ts";
 import {
 	createGenericEmbed,
 	guildCache,
 	isAdminOrManager,
-	type GuildDetails,
 } from "#src/utils/misc.ts";
-import { logger } from "#src/utils/logger.ts";
-import { config } from "#src/utils/config.ts";
+import { createNewSplit } from "#src/features/split/newSplit.ts";
 
 export const cooldown = 5;
 
@@ -117,17 +100,14 @@ export const builder = new SlashCommandBuilder()
 	)
 	.setContexts(InteractionContextType.Guild);
 
-// TODO: fix ephemeral status
 export const handler: CommandHandler = async ({ cid, i }) => {
 	// Retreive cached guild
 	const cachedGuild = guildCache.get(i.guildId ?? "");
 	assert(cachedGuild, "Guild not found in cache");
 
-	// Initial deferral to prevent timeouts
-	await i.deferReply({ ephemeral: true });
-
 	// Handle users managing their balances
 	if (i.options.getSubcommandGroup() === "balance") {
+		await i.deferReply({ ephemeral: true });
 		return;
 	}
 
@@ -150,285 +130,14 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 
 	// Handle creating a new split
 	if (i.options.getSubcommand() === "new") {
+		await i.deferReply();
 		await createNewSplit(cid, i, cachedGuild);
 		return;
 	}
 
 	// Handle admin commands
 	if (i.options.getSubcommandGroup() === "admin") {
+		await i.deferReply({ ephemeral: true });
 		return;
 	}
 };
-
-function calculateSplit(
-	totalAmount: number,
-	repairCost: number,
-	taxRate: number,
-	memberCount: number,
-): { buyerPayment: number; amountPerPerson: number } {
-	if (memberCount === 0) return { buyerPayment: 0, amountPerPerson: 0 };
-
-	const afterRepairs = totalAmount - repairCost;
-	const buyerProfit = afterRepairs * (taxRate / 100);
-	const buyerPayment = Math.floor(afterRepairs - buyerProfit);
-	const amountPerPerson = Math.floor(buyerPayment / memberCount);
-
-	return { buyerPayment, amountPerPerson };
-}
-
-function generateSplitDetailsEmbed(
-	totalAmount: number,
-	repairCost: number,
-	taxRate: number,
-	memberCount: number,
-	lng: Locale,
-): EmbedBuilder {
-	const { format: i18nNum } = Intl.NumberFormat(lng);
-
-	const { buyerPayment, amountPerPerson } = calculateSplit(
-		totalAmount,
-		repairCost,
-		taxRate,
-		memberCount,
-	);
-
-	// TODO: i18n tax?
-
-	return new EmbedBuilder()
-		.setTitle("Split Details")
-		.addFields(
-			{ name: "Total Amount", value: i18nNum(totalAmount), inline: true },
-			{ name: "Repair Cost", value: i18nNum(repairCost), inline: true },
-			{ name: "Tax", value: `${taxRate}%`, inline: true },
-			{
-				name: "Member Count",
-				value: i18nNum(memberCount),
-				inline: true,
-			},
-			{
-				name: "Buyer Payment",
-				value: i18nNum(buyerPayment),
-				inline: true,
-			},
-
-			{
-				name: "Amount Per Person",
-				value: i18nNum(amountPerPerson),
-				inline: true,
-			},
-		)
-		.setColor(config.colors.info);
-}
-
-function createButtonRows(): {
-	calcRow: ActionRowBuilder<ButtonBuilder>;
-	membersRow: ActionRowBuilder<ButtonBuilder>;
-	actionsRow: ActionRowBuilder<ButtonBuilder>;
-} {
-	const addMembersBtn = new ButtonBuilder()
-		.setCustomId("addMembers")
-		.setLabel("Add Members")
-		.setStyle(ButtonStyle.Primary);
-
-	const removeMembersBtn = new ButtonBuilder()
-		.setCustomId("removeMembers")
-		.setLabel("Remove Members")
-		.setStyle(ButtonStyle.Primary);
-
-	const addFromVoiceBtn = new ButtonBuilder()
-		.setCustomId("addVoiceMembers")
-		.setLabel("Add From Voice")
-		.setStyle(ButtonStyle.Primary);
-
-	const setTotalBtn = new ButtonBuilder()
-		.setCustomId("setTotalAmount")
-		.setLabel("Set Total Amount")
-		.setStyle(ButtonStyle.Primary);
-
-	const setRepairCostBtn = new ButtonBuilder()
-		.setCustomId("setRepairCost")
-		.setLabel("Set Repair Cost")
-		.setStyle(ButtonStyle.Primary);
-
-	const setTaxBtn = new ButtonBuilder()
-		.setCustomId("setTax")
-		.setLabel("Set Tax")
-		.setStyle(ButtonStyle.Primary);
-
-	const endSplitBtn = new ButtonBuilder()
-		.setCustomId("endSplit")
-		.setLabel("End Split")
-		.setStyle(ButtonStyle.Secondary);
-
-	const cancelSplitBtn = new ButtonBuilder()
-		.setCustomId("cancelSplit")
-		.setLabel("Cancel")
-		.setStyle(ButtonStyle.Danger);
-
-	const calcRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-		setTotalBtn,
-		setRepairCostBtn,
-		setTaxBtn,
-	);
-
-	const membersRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-		addMembersBtn,
-		removeMembersBtn,
-		addFromVoiceBtn,
-	);
-
-	const actionsRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-		endSplitBtn,
-		cancelSplitBtn,
-	);
-
-	return { calcRow, membersRow, actionsRow };
-}
-
-async function createNewSplit(
-	cid: string,
-	i: ChatInputCommandInteraction,
-	cache: GuildDetails,
-): Promise<void> {
-	let totalAmount = 352876349;
-	let repairCost = 34387645;
-	let taxRate = 10;
-	let memberCount = 84;
-
-	const embed = generateSplitDetailsEmbed(
-		totalAmount,
-		repairCost,
-		taxRate,
-		memberCount,
-		i.locale,
-	);
-
-	const { calcRow, membersRow, actionsRow } = createButtonRows();
-
-	// do I want a cache here?
-	// update database
-	// log initial lootsplit created
-
-	const res = await i.followUp({
-		content: "",
-		embeds: [embed],
-		components: [calcRow, membersRow, actionsRow],
-	});
-
-	const collector = res.createMessageComponentCollector({
-		filter: (mi) => mi.user.id === i.user.id,
-		componentType: ComponentType.Button,
-		time: 3_600_000,
-	});
-
-	// TODO: start splitting this code up
-	// TODO: handle action after split end / cancel
-	// TODO: figure out how to cleanup all messages and collectors
-
-	let isMemberSelectActive = false;
-
-	collector.on("collect", async (ci) => {
-		switch (ci.customId) {
-			case "setTax":
-				const modal = new ModalBuilder()
-					.setCustomId(`taxRate-${ci.id}`)
-					.setTitle("Set Tax");
-
-				const input = new TextInputBuilder()
-					.setCustomId("taxInput")
-					.setLabel("Tax Rate")
-					.setValue(taxRate.toString())
-					.setMinLength(1)
-					.setMaxLength(3)
-					.setRequired(true)
-					.setStyle(TextInputStyle.Short);
-
-				const row = new ActionRowBuilder<ModalActionRowComponentBuilder>();
-
-				row.addComponents(input);
-				modal.addComponents(row);
-
-				await ci.showModal(modal);
-
-				const { error, data } = await until(() =>
-					ci.awaitModalSubmit({
-						filter: (mi) => mi.customId === `taxRate-${ci.id}`,
-						time: 60_000,
-					}),
-				);
-
-				if (error) return;
-
-				// Typescript non-sense
-				if (!data.isFromMessage()) return;
-
-				const newRate = Number(data.fields.getTextInputValue("taxInput"));
-
-				if (!Number.isSafeInteger(newRate) || newRate < 0 || newRate > 100) {
-					await data.reply({
-						content: "Invalid tax rate provided, must be between 0 and 100",
-						ephemeral: true,
-					});
-					return;
-				}
-
-				taxRate = newRate;
-
-				const embed = generateSplitDetailsEmbed(
-					totalAmount,
-					repairCost,
-					taxRate,
-					memberCount,
-					i.locale,
-				);
-
-				await data.update({
-					embeds: [embed],
-				});
-
-				break;
-			case "addMembers":
-				if (isMemberSelectActive) return;
-				isMemberSelectActive = true;
-
-				const menu = new UserSelectMenuBuilder()
-					.setCustomId(`addMembers-${ci.id}`)
-					.setPlaceholder("Select one or more members")
-					.setMinValues(1)
-					.setMaxValues(25);
-
-				const addMemberMenuRow =
-					new ActionRowBuilder<UserSelectMenuBuilder>().addComponents(menu);
-
-				const confirmBtn = new ButtonBuilder()
-					.setCustomId("confirm")
-					.setLabel("Confirm")
-					.setStyle(ButtonStyle.Primary);
-
-				const cancelBtn = new ButtonBuilder()
-					.setCustomId("cancel")
-					.setLabel("Cancel")
-					.setStyle(ButtonStyle.Danger);
-
-				const addMemberActionRow =
-					new ActionRowBuilder<ButtonBuilder>().addComponents(
-						confirmBtn,
-						cancelBtn,
-					);
-
-				await ci.reply({
-					content:
-						"Select members you want to add to the split (Max 25 at a time)",
-					components: [addMemberMenuRow, addMemberActionRow],
-					ephemeral: true,
-				});
-
-				break;
-			case "cancelSplit":
-				collector.stop();
-				// TODO: Cleanup all responses and collectors
-				await ci.deleteReply();
-				break;
-		}
-	});
-}
