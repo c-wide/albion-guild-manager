@@ -1,20 +1,27 @@
 import { until } from "@open-draft/until";
 import {
 	ActionRowBuilder,
+	ButtonBuilder,
 	type ButtonInteraction,
+	ButtonStyle,
 	type ChatInputCommandInteraction,
 	ComponentType,
+	EmbedBuilder,
 	type ModalActionRowComponentBuilder,
 	ModalBuilder,
+	type Snowflake,
 	TextInputBuilder,
 	TextInputStyle,
+	UserSelectMenuBuilder,
 } from "discord.js";
 import { Lootsplit } from "#src/features/split/lootsplit.ts";
 import {
 	createMemberListMsg,
 	createSplitButtonRows,
+	generateMemberListFields,
 	generateSplitDetailsEmbed,
 } from "#src/features/split/split-ui.ts";
+import { config } from "#src/utils/config.ts";
 import { logger } from "#src/utils/logger.ts";
 import { type GuildDetails, getErrorMessage } from "#src/utils/misc.ts";
 
@@ -197,7 +204,76 @@ async function handleAddMembers(
 	i: ButtonInteraction,
 	split: Lootsplit,
 ): Promise<void> {
-	throw new Error("Not implemented");
+	const selectRow = new ActionRowBuilder<UserSelectMenuBuilder>().addComponents(
+		new UserSelectMenuBuilder()
+			.setCustomId("addMembers")
+			.setPlaceholder("Select up to 25 members")
+			.setMinValues(1)
+			.setMaxValues(25),
+	);
+
+	const selectMsg = await i.reply({
+		content: "Select the members you want to add to the split",
+		components: [selectRow],
+		ephemeral: true,
+		fetchReply: true,
+	});
+
+	const { error: selectErr, data: selectData } = await until(() =>
+		selectMsg.awaitMessageComponent({
+			filter: (mi) => mi.user.id === i.user.id,
+			time: 5 * 60_000,
+			componentType: ComponentType.UserSelect,
+		}),
+	);
+
+	if (selectErr) {
+		await selectMsg.delete();
+		return;
+	}
+
+	const selectedMembers = selectData.values as Snowflake[];
+
+	const confirmEmbed = new EmbedBuilder()
+		.setTitle("Confirm Members")
+		.setDescription("Are you sure you want to add these members?")
+		.setFields(generateMemberListFields(selectedMembers))
+		.setColor(config.colors.info);
+
+	const confirmRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+		new ButtonBuilder()
+			.setCustomId("confirm")
+			.setLabel("Confirm")
+			.setStyle(ButtonStyle.Primary),
+		new ButtonBuilder()
+			.setCustomId("cancel")
+			.setLabel("Cancel")
+			.setStyle(ButtonStyle.Danger),
+	);
+
+	const confirmMsg = await selectData.update({
+		content: "",
+		embeds: [confirmEmbed],
+		components: [confirmRow],
+	});
+
+	const { error: confirmErr, data: confirmData } = await until(() =>
+		confirmMsg.awaitMessageComponent({
+			filter: (mi) => mi.user.id === i.user.id,
+			time: 5 * 60_000,
+			componentType: ComponentType.Button,
+		}),
+	);
+
+	if (confirmErr) {
+		await confirmMsg.delete();
+		return;
+	}
+
+	if (confirmData.customId === "cancel") {
+		await confirmMsg.delete();
+		return;
+	}
 }
 
 // TODO: figure out how to cleanup all messages and collectors
