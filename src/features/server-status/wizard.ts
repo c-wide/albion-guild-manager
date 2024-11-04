@@ -344,12 +344,12 @@ async function showConfirmation(
 	const cancelButton = new ButtonBuilder()
 		.setCustomId("cancel")
 		.setLabel(i18n.t("phrases.cancel", { ns: "common", lng: i.locale }))
-		.setStyle(ButtonStyle.Secondary);
+		.setStyle(ButtonStyle.Danger);
 
 	// Create action row
 	const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-		cancelButton,
 		confirmButton,
+		cancelButton,
 	);
 
 	// Send settings confirmation to user
