@@ -8,6 +8,7 @@ import {
 	ComponentType,
 	EmbedBuilder,
 	GuildMember,
+	InteractionCollector,
 	type Message,
 	type ModalActionRowComponentBuilder,
 	ModalBuilder,
@@ -284,6 +285,11 @@ async function handleAddMembers(
 
 	split.addMembers(selectedMembers);
 
+	logger.info(
+		{ splitId: split.getId(), members: selectedMembers },
+		"Members added to split",
+	);
+
 	await Promise.all([
 		mainMessage.edit({
 			embeds: [generateSplitDetailsEmbed(split.getSplitDetails(), i.locale)],
@@ -372,6 +378,11 @@ async function handleRemoveMembers(
 
 	split.removeMembers(selectedMembers);
 
+	logger.info(
+		{ splitId: split.getId(), members: selectedMembers },
+		"Members removed from split",
+	);
+
 	await Promise.all([
 		mainMessage.edit({
 			embeds: [generateSplitDetailsEmbed(split.getSplitDetails(), i.locale)],
@@ -447,6 +458,11 @@ async function handleAddFromVoice(
 
 	split.addMembers(members);
 
+	logger.info(
+		{ splitId: split.getId(), members },
+		"Members added to split from voice channel",
+	);
+
 	await Promise.all([
 		mainMessage.edit({
 			embeds: [generateSplitDetailsEmbed(split.getSplitDetails(), i.locale)],
@@ -456,11 +472,24 @@ async function handleAddFromVoice(
 	]);
 }
 
+export async function handleCancelSplit(
+	split: Lootsplit,
+	mainMessage: Message,
+	memberList: PaginationEmbed,
+	collector: InteractionCollector<ButtonInteraction>,
+): Promise<void> {
+	collector.stop();
+	await Promise.all([mainMessage.delete(), memberList.cleanup()]);
+	logger.info({ splitId: split.getId() }, "Split cancelled");
+}
+
 export async function createNewSplit(
 	cid: string,
 	i: ChatInputCommandInteraction,
 	_cache: GuildDetails,
 ): Promise<void> {
+	await i.deferReply();
+
 	const split = new Lootsplit();
 
 	const memberList = new PaginationEmbed(
@@ -510,6 +539,10 @@ export async function createNewSplit(
 				}
 				case "addVoiceMembers": {
 					await handleAddFromVoice(ci, split, mainMessage, memberList);
+					break;
+				}
+				case "cancelSplit": {
+					await handleCancelSplit(split, mainMessage, memberList, collector);
 					break;
 				}
 			}

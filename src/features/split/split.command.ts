@@ -7,12 +7,11 @@ import {
 	createGenericEmbed,
 	guildCache,
 	isAdminOrManager,
+	Settings,
 } from "#src/utils/misc.ts";
 import { createNewSplit } from "#src/features/split/newSplit.ts";
 
 export const cooldown = 5;
-
-// TODO: add role command for ppl that can manage splits?
 
 export const builder = new SlashCommandBuilder()
 	.setName("split")
@@ -96,6 +95,17 @@ export const builder = new SlashCommandBuilder()
 							.setDescription("Member whose balance to set")
 							.setRequired(true),
 					),
+			)
+			.addSubcommand((subcommand) =>
+				subcommand
+					.setName("set_manager_role")
+					.setDescription("Set the role that can manage splits")
+					.addRoleOption((option) =>
+						option
+							.setName("role")
+							.setDescription("Role that can manage splits")
+							.setRequired(true),
+					),
 			),
 	)
 	.setContexts(InteractionContextType.Guild);
@@ -111,8 +121,18 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 		return;
 	}
 
-	// Only server admins or managers can use the other commands
-	if (!isAdminOrManager(i.member, cachedGuild)) {
+	// Extract manager role from guild settings
+	const managerRole = cachedGuild.settings.get(Settings.SplitManagerRole) as
+		| string
+		| null;
+
+	// Check if user has permission to create / manage splits
+	if (
+		(managerRole &&
+			!Array.isArray(i.member?.roles) &&
+			!i.member?.roles.cache.has(managerRole)) ||
+		!isAdminOrManager(i.member, cachedGuild)
+	) {
 		logger.info({ cid }, "User lacks permission");
 		await i.reply({
 			content: "",
@@ -130,7 +150,6 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 
 	// Handle creating a new split
 	if (i.options.getSubcommand() === "new") {
-		await i.deferReply();
 		await createNewSplit(cid, i, cachedGuild);
 		return;
 	}
@@ -141,3 +160,19 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 		return;
 	}
 };
+
+// if (!isAdminOrManager(i.member, cachedGuild)) {
+// 	logger.info({ cid }, "User lacks permission");
+// 	await i.reply({
+// 		content: "",
+// 		ephemeral: true,
+// 		embeds: [
+// 			createGenericEmbed({
+// 				title: " ",
+// 				description: "You lack permission",
+// 				color: config.colors.warning,
+// 			}),
+// 		],
+// 	});
+// 	return;
+// }

@@ -37,6 +37,7 @@ export const Settings = {
 	ServerStatusChannel: "server_status_channel",
 	ServerStatusRegions: "server_status_regions",
 	ServerStatusToggle: "server_status_toggle",
+	SplitManagerRole: "split_manager_role",
 } as const;
 export type SettingsKey = (typeof Settings)[keyof typeof Settings];
 
