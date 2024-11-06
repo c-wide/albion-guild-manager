@@ -2,13 +2,10 @@ import {
 	ActionRowBuilder,
 	ButtonBuilder,
 	ButtonStyle,
-	type ChatInputCommandInteraction,
 	EmbedBuilder,
 	type EmbedField,
 	type Locale,
-	type Snowflake,
 } from "discord.js";
-import { Pagination } from "pagination.djs";
 import type { SplitDetails } from "#src/features/split/lootsplit.ts";
 import { config } from "#src/utils/config.ts";
 
@@ -59,9 +56,7 @@ export function generateSplitDetailsEmbed(
 		.setColor(config.colors.info);
 }
 
-export function generateMemberListFields(
-	memberList: Snowflake[],
-): EmbedField[] {
+export function generateMemberListFields(memberList: string[]): EmbedField[] {
 	if (memberList.length === 0) {
 		return [{ name: " ", value: "No members found", inline: true }];
 	}
@@ -83,16 +78,21 @@ export function generateMemberListFields(
 	}, []);
 }
 
-export function createMemberListMsg(
-	i: ChatInputCommandInteraction,
-	memberList: Snowflake[],
-): Pagination {
-	const pagination = new Pagination(i, { limit: 2, idle: 3_600_000 });
-	pagination.setTitle("Member List");
-	pagination.setColor(config.colors.info);
-	pagination.setFields(generateMemberListFields(memberList));
-	pagination.paginateFields();
-	return pagination;
+export function generateMemberListEmbeds(memberList: string[]): EmbedBuilder[] {
+	const memberListFields = generateMemberListFields(memberList);
+	const embeds: EmbedBuilder[] = [];
+
+	for (let i = 0; i < memberListFields.length; i += 3) {
+		const embedFields = memberListFields.slice(i, i + 3);
+		const embed = new EmbedBuilder()
+			.setTitle("Member List")
+			.addFields(embedFields)
+			.setColor(config.colors.info);
+
+		embeds.push(embed);
+	}
+
+	return embeds;
 }
 
 export function createSplitButtonRows(): ActionRowBuilder<ButtonBuilder>[] {

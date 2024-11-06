@@ -1,6 +1,5 @@
 import assert from "node:assert";
 import crypto from "node:crypto";
-import type { Snowflake } from "discord.js";
 
 export type SplitDetails = {
 	totalAmount: number;
@@ -16,13 +15,13 @@ export class Lootsplit {
 	private totalAmount: number;
 	private repairCost: number;
 	private taxRate: number;
-	private memberList: Snowflake[];
+	private memberList: Set<string>;
 
 	constructor(
 		initialAmount = 0,
 		initialRepair = 0,
 		initialTax = 10,
-		initialMembers: Snowflake[] = [],
+		initialMembers: string[] = [],
 	) {
 		assert(
 			Number.isSafeInteger(initialAmount) && initialAmount >= 0,
@@ -45,7 +44,7 @@ export class Lootsplit {
 		this.totalAmount = initialAmount;
 		this.repairCost = initialRepair;
 		this.taxRate = initialTax;
-		this.memberList = initialMembers;
+		this.memberList = new Set(initialMembers);
 	}
 
 	getId(): string {
@@ -64,8 +63,8 @@ export class Lootsplit {
 		return this.taxRate;
 	}
 
-	getMemberList(): Snowflake[] {
-		return [...this.memberList];
+	getMemberList(): string[] {
+		return Array.from(this.memberList);
 	}
 
 	setTotalAmount(amount: number): boolean {
@@ -97,20 +96,28 @@ export class Lootsplit {
 		return true;
 	}
 
+	addMembers(members: string[]): void {
+		members.forEach((member) => this.memberList.add(member));
+	}
+
+	removeMembers(members: string[]): void {
+		members.forEach((member) => this.memberList.delete(member));
+	}
+
 	getSplitDetails(): SplitDetails {
 		const afterRepairs = this.totalAmount - this.repairCost;
 		const buyerProfit = afterRepairs * (this.taxRate / 100);
 		const buyerPayment = Math.floor(afterRepairs - buyerProfit);
 		const amountPerPerson =
-			this.memberList.length > 0
-				? Math.floor(buyerPayment / this.memberList.length)
+			this.memberList.size > 0
+				? Math.floor(buyerPayment / this.memberList.size)
 				: 0;
 
 		return {
 			totalAmount: this.totalAmount,
 			repairCost: this.repairCost,
 			taxRate: this.taxRate,
-			memberCount: this.memberList.length,
+			memberCount: this.memberList.size,
 			buyerPayment,
 			amountPerPerson,
 		};

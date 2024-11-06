@@ -17,6 +17,8 @@ await manager.spawn();
 startServerStatusInterval(manager);
 
 // FIXME: Fix modal for server status wizard, need filter and custom id
+// TODO: do I need to log collection interacitons?
+// TODO: lookup by name or id
 // TODO: server status channel create should put it into monitoring category
 // TODO: welcome message to inviter DM
 // TODO: remove interactables upon timeout

@@ -8,7 +8,11 @@ import { logger } from "#src/utils/logger.ts";
 import { guildCache } from "#src/utils/misc.ts";
 
 const client = new Client({
-	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
+	intents: [
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMembers,
+		GatewayIntentBits.GuildVoiceStates,
+	],
 });
 
 // Attach stuff to the client for use with sharding methods
