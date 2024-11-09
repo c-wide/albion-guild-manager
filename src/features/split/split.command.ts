@@ -111,6 +111,9 @@ export const builder = new SlashCommandBuilder()
 	.setContexts(InteractionContextType.Guild);
 
 export const handler: CommandHandler = async ({ cid, i }) => {
+	// Mostly typescript non-sense
+	if (!i.inCachedGuild()) return;
+
 	// Retreive cached guild
 	const cachedGuild = guildCache.get(i.guildId ?? "");
 	assert(cachedGuild, "Guild not found in cache");
@@ -128,9 +131,7 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 
 	// Check if user has permission to create / manage splits
 	if (
-		(managerRole &&
-			!Array.isArray(i.member?.roles) &&
-			!i.member?.roles.cache.has(managerRole)) ||
+		(managerRole && !i.member.roles.cache.has(managerRole)) ||
 		!isAdminOrManager(i.member, cachedGuild)
 	) {
 		logger.info({ cid }, "User lacks permission");
@@ -160,19 +161,3 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 		return;
 	}
 };
-
-// if (!isAdminOrManager(i.member, cachedGuild)) {
-// 	logger.info({ cid }, "User lacks permission");
-// 	await i.reply({
-// 		content: "",
-// 		ephemeral: true,
-// 		embeds: [
-// 			createGenericEmbed({
-// 				title: " ",
-// 				description: "You lack permission",
-// 				color: config.colors.warning,
-// 			}),
-// 		],
-// 	});
-// 	return;
-// }

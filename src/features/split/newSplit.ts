@@ -7,7 +7,6 @@ import {
 	type ChatInputCommandInteraction,
 	ComponentType,
 	EmbedBuilder,
-	GuildMember,
 	InteractionCollector,
 	type Message,
 	type ModalActionRowComponentBuilder,
@@ -18,6 +17,7 @@ import {
 } from "discord.js";
 import { Lootsplit } from "#src/features/split/lootsplit.ts";
 import {
+	createSplitAttachment,
 	createSplitButtonRows,
 	generateMemberListEmbeds,
 	generateMemberListFields,
@@ -25,8 +25,15 @@ import {
 } from "#src/features/split/split-ui.ts";
 import { config } from "#src/utils/config.ts";
 import { logger } from "#src/utils/logger.ts";
-import { type GuildDetails, getErrorMessage } from "#src/utils/misc.ts";
+import {
+	type GuildDetails,
+	createGenericEmbed,
+	getErrorMessage,
+} from "#src/utils/misc.ts";
 import { PaginationEmbed } from "#src/utils/pagination.ts";
+import { db } from "#src/database/db.ts";
+import { lootSplitBalances } from "#src/database/schema.ts";
+import { sql } from "drizzle-orm";
 
 async function handleSetTax(
 	i: ButtonInteraction,
@@ -207,7 +214,7 @@ async function handleSetRepairCost(
 }
 
 async function handleAddMembers(
-	i: ButtonInteraction,
+	i: ButtonInteraction<"cached">,
 	split: Lootsplit,
 	mainMessage: Message,
 	memberList: PaginationEmbed,
@@ -240,12 +247,10 @@ async function handleAddMembers(
 		return;
 	}
 
-	const selectedMembers = selectData.values;
-
 	const confirmEmbed = new EmbedBuilder()
 		.setTitle("Confirm Members")
 		.setDescription("Are you sure you want to add these members?")
-		.setFields(generateMemberListFields(selectedMembers))
+		.setFields(generateMemberListFields(selectData.values))
 		.setColor(config.colors.info);
 
 	const confirmRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -283,24 +288,25 @@ async function handleAddMembers(
 		return;
 	}
 
-	split.addMembers(selectedMembers);
+	const members = selectData.members.map((member) => ({
+		id: member.user.id,
+		name: member.displayName,
+	}));
+	split.addMembers(members);
 
-	logger.info(
-		{ splitId: split.getId(), members: selectedMembers },
-		"Members added to split",
-	);
+	logger.info({ splitId: split.getId(), members }, "Members added to split");
 
 	await Promise.all([
 		mainMessage.edit({
 			embeds: [generateSplitDetailsEmbed(split.getSplitDetails(), i.locale)],
 		}),
-		memberList.setEmbeds(generateMemberListEmbeds(split.getMemberList())),
+		memberList.setEmbeds(generateMemberListEmbeds(split.getMemberIds())),
 		confirmMsg.delete(),
 	]);
 }
 
 async function handleRemoveMembers(
-	i: ButtonInteraction,
+	i: ButtonInteraction<"cached">,
 	split: Lootsplit,
 	mainMessage: Message,
 	memberList: PaginationEmbed,
@@ -333,12 +339,10 @@ async function handleRemoveMembers(
 		return;
 	}
 
-	const selectedMembers = selectData.values;
-
 	const confirmEmbed = new EmbedBuilder()
 		.setTitle("Confirm Members")
 		.setDescription("Are you sure you want to remove these members?")
-		.setFields(generateMemberListFields(selectedMembers))
+		.setFields(generateMemberListFields(selectData.values))
 		.setColor(config.colors.info);
 
 	const confirmRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -376,10 +380,14 @@ async function handleRemoveMembers(
 		return;
 	}
 
-	split.removeMembers(selectedMembers);
+	const members = selectData.members.map((member) => ({
+		id: member.user.id,
+		name: member.displayName,
+	}));
+	split.removeMembers(members);
 
 	logger.info(
-		{ splitId: split.getId(), members: selectedMembers },
+		{ splitId: split.getId(), members },
 		"Members removed from split",
 	);
 
@@ -387,19 +395,17 @@ async function handleRemoveMembers(
 		mainMessage.edit({
 			embeds: [generateSplitDetailsEmbed(split.getSplitDetails(), i.locale)],
 		}),
-		memberList.setEmbeds(generateMemberListEmbeds(split.getMemberList())),
+		memberList.setEmbeds(generateMemberListEmbeds(split.getMemberIds())),
 		confirmMsg.delete(),
 	]);
 }
 
 async function handleAddFromVoice(
-	i: ButtonInteraction,
+	i: ButtonInteraction<"cached">,
 	split: Lootsplit,
 	mainMessage: Message,
 	memberList: PaginationEmbed,
 ): Promise<void> {
-	if (!i.member || !(i.member instanceof GuildMember)) return;
-
 	const voiceChannel = i.member.voice.channel;
 	if (!voiceChannel) {
 		const res = await i.reply({
@@ -410,7 +416,10 @@ async function handleAddFromVoice(
 		return;
 	}
 
-	const members = voiceChannel.members.map((member) => member.user.id);
+	const members = voiceChannel.members.map((member) => ({
+		id: member.user.id,
+		name: member.displayName,
+	}));
 
 	const confirmEmbed = new EmbedBuilder()
 		.setTitle("Confirm Members")
@@ -467,7 +476,7 @@ async function handleAddFromVoice(
 		mainMessage.edit({
 			embeds: [generateSplitDetailsEmbed(split.getSplitDetails(), i.locale)],
 		}),
-		memberList.setEmbeds(generateMemberListEmbeds(split.getMemberList())),
+		memberList.setEmbeds(generateMemberListEmbeds(split.getMemberIds())),
 		i.deleteReply(),
 	]);
 }
@@ -476,7 +485,7 @@ export async function handleCancelSplit(
 	split: Lootsplit,
 	mainMessage: Message,
 	memberList: PaginationEmbed,
-	collector: InteractionCollector<ButtonInteraction>,
+	collector: InteractionCollector<ButtonInteraction<"cached">>,
 ): Promise<void> {
 	collector.stop();
 	await Promise.all([mainMessage.delete(), memberList.cleanup()]);
@@ -485,15 +494,15 @@ export async function handleCancelSplit(
 
 export async function createNewSplit(
 	cid: string,
-	i: ChatInputCommandInteraction,
-	_cache: GuildDetails,
+	i: ChatInputCommandInteraction<"cached">,
+	cache: GuildDetails,
 ): Promise<void> {
 	await i.deferReply();
 
-	const split = new Lootsplit();
+	const split = new Lootsplit({ id: i.user.id, name: i.member.displayName });
 
 	const memberList = new PaginationEmbed(
-		generateMemberListEmbeds(split.getMemberList()),
+		generateMemberListEmbeds(split.getMemberIds()),
 		{
 			collectorTimeout: 3_600_000,
 		},
@@ -543,6 +552,108 @@ export async function createNewSplit(
 				}
 				case "cancelSplit": {
 					await handleCancelSplit(split, mainMessage, memberList, collector);
+					break;
+				}
+				case "endSplit": {
+					if (split.getTotalAmount() < 1) {
+						await ci.reply({
+							content: "You must set a total amount before ending the split",
+							ephemeral: true,
+						});
+						setTimeout(async () => await ci.deleteReply(), 10_000);
+						return;
+					}
+
+					if (split.getMemberCount() < 1) {
+						await ci.reply({
+							content:
+								"You must have at least one member in the split to end it",
+							ephemeral: true,
+						});
+						setTimeout(async () => await ci.deleteReply(), 10_000);
+						return;
+					}
+
+					await mainMessage.edit({
+						components: [],
+					});
+
+					const confirmRow =
+						new ActionRowBuilder<ButtonBuilder>().addComponents(
+							new ButtonBuilder()
+								.setCustomId("confirm")
+								.setLabel("Confirm")
+								.setStyle(ButtonStyle.Primary),
+							new ButtonBuilder()
+								.setCustomId("cancel")
+								.setLabel("Cancel")
+								.setStyle(ButtonStyle.Danger),
+						);
+
+					const confirmMsg = await ci.reply({
+						content: "",
+						embeds: [
+							createGenericEmbed({
+								title: "Confirmation",
+								description: "Are you sure you want to end the split?",
+								color: config.colors.info,
+							}),
+						],
+						components: [confirmRow],
+						fetchReply: true,
+					});
+
+					const { error: confirmErr, data: confirmData } = await until(() =>
+						confirmMsg.awaitMessageComponent({
+							filter: (mi) => mi.user.id === i.user.id,
+							time: 3 * 60_000,
+							componentType: ComponentType.Button,
+						}),
+					);
+
+					if (confirmErr || confirmData.customId === "cancel") {
+						await Promise.all([
+							ci.deleteReply(),
+							mainMessage.edit({
+								components: createSplitButtonRows(),
+							}),
+						]);
+						return;
+					}
+
+					logger.info(
+						{ details: split.getSplitDetails(), members: split.getMemberIds() },
+						"Split ended",
+					);
+
+					collector.stop();
+
+					await Promise.all([
+						mainMessage.edit({
+							embeds: [],
+							files: [createSplitAttachment(split)],
+						}),
+						ci.deleteReply(),
+						memberList.cleanup(),
+					]);
+
+					const { amountPerPerson } = split.getSplitDetails();
+					await db
+						.insert(lootSplitBalances)
+						.values(
+							split.getMemberList().map((member) => ({
+								serverId: cache.id,
+								memberId: member.id,
+								balance: amountPerPerson,
+							})),
+						)
+						.onConflictDoUpdate({
+							target: [lootSplitBalances.serverId, lootSplitBalances.memberId],
+							set: {
+								balance: sql`${lootSplitBalances.balance} + ${amountPerPerson}`,
+							},
+						});
+
 					break;
 				}
 			}

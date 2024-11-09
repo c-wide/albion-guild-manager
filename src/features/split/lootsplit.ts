@@ -1,13 +1,28 @@
-import assert from "node:assert";
 import crypto from "node:crypto";
 
 export type SplitDetails = {
+	id: string;
 	totalAmount: number;
 	repairCost: number;
 	taxRate: number;
 	memberCount: number;
 	buyerPayment: number;
 	amountPerPerson: number;
+	createdBy: SplitMember;
+	createdAt: Date;
+};
+
+export type SplitMember = {
+	id: string;
+	name: string;
+};
+
+export type LootsplitOptions = {
+	id?: string;
+	initialAmount?: number;
+	initialRepair?: number;
+	initialTax?: number;
+	initialMembers?: SplitMember[];
 };
 
 export class Lootsplit {
@@ -15,36 +30,18 @@ export class Lootsplit {
 	private totalAmount: number;
 	private repairCost: number;
 	private taxRate: number;
-	private memberList: Set<string>;
+	private readonly memberList: Set<SplitMember>;
+	private readonly createdBy: SplitMember;
+	private readonly createdAt: Date;
 
-	constructor(
-		initialAmount = 0,
-		initialRepair = 0,
-		initialTax = 10,
-		initialMembers: string[] = [],
-	) {
-		assert(
-			Number.isSafeInteger(initialAmount) && initialAmount >= 0,
-			"Invalid initial amount",
-		);
-
-		assert(
-			Number.isSafeInteger(initialRepair) &&
-				initialRepair >= 0 &&
-				initialRepair <= initialAmount,
-			"Invalid initial repair cost",
-		);
-
-		assert(
-			Number.isSafeInteger(initialTax) && initialTax >= 0 && initialTax <= 100,
-			"Invalid initial tax rate",
-		);
-
-		this.id = crypto.randomUUID();
-		this.totalAmount = initialAmount;
-		this.repairCost = initialRepair;
-		this.taxRate = initialTax;
-		this.memberList = new Set(initialMembers);
+	constructor(creator: SplitMember, options: LootsplitOptions = {}) {
+		this.id = options.id ?? crypto.randomUUID();
+		this.totalAmount = options.initialAmount ?? 0;
+		this.repairCost = options.initialRepair ?? 0;
+		this.taxRate = options.initialTax ?? 10;
+		this.memberList = new Set(options.initialMembers ?? []);
+		this.createdBy = creator;
+		this.createdAt = new Date();
 	}
 
 	getId(): string {
@@ -63,8 +60,16 @@ export class Lootsplit {
 		return this.taxRate;
 	}
 
-	getMemberList(): string[] {
+	getMemberIds(): string[] {
+		return Array.from(this.memberList).map((member) => member.id);
+	}
+
+	getMemberList(): SplitMember[] {
 		return Array.from(this.memberList);
+	}
+
+	getMemberCount(): number {
+		return this.memberList.size;
 	}
 
 	setTotalAmount(amount: number): boolean {
@@ -96,11 +101,11 @@ export class Lootsplit {
 		return true;
 	}
 
-	addMembers(members: string[]): void {
+	addMembers(members: SplitMember[]): void {
 		members.forEach((member) => this.memberList.add(member));
 	}
 
-	removeMembers(members: string[]): void {
+	removeMembers(members: SplitMember[]): void {
 		members.forEach((member) => this.memberList.delete(member));
 	}
 
@@ -114,12 +119,15 @@ export class Lootsplit {
 				: 0;
 
 		return {
+			id: this.id,
 			totalAmount: this.totalAmount,
 			repairCost: this.repairCost,
 			taxRate: this.taxRate,
 			memberCount: this.memberList.size,
 			buyerPayment,
 			amountPerPerson,
+			createdBy: this.createdBy,
+			createdAt: this.createdAt,
 		};
 	}
 }

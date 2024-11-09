@@ -1,4 +1,5 @@
 import {
+	bigint,
 	jsonb,
 	pgTable,
 	text,
@@ -10,7 +11,7 @@ import {
 
 export const servers = pgTable("servers", {
 	id: uuid("id").defaultRandom().primaryKey(),
-	guildId: varchar("guild_id", { length: 20 }).notNull(),
+	guildId: varchar("guild_id", { length: 25 }).notNull(),
 	joinedAt: timestamp("joined_at", { withTimezone: true })
 		.defaultNow()
 		.notNull(),
@@ -36,5 +37,20 @@ export const serverSettings = pgTable(
 	},
 	(t) => ({
 		unq: unique().on(t.serverId, t.key),
+	}),
+);
+
+export const lootSplitBalances = pgTable(
+	"loot_split_balances",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		serverId: uuid("server_id")
+			.notNull()
+			.references(() => servers.id),
+		memberId: varchar("member_id", { length: 25 }).notNull(),
+		balance: bigint("balance", { mode: "number" }).notNull(),
+	},
+	(t) => ({
+		unq: unique().on(t.serverId, t.memberId),
 	}),
 );

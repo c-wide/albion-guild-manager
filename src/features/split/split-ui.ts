@@ -1,12 +1,17 @@
 import {
 	ActionRowBuilder,
+	AttachmentBuilder,
 	ButtonBuilder,
 	ButtonStyle,
 	EmbedBuilder,
 	type EmbedField,
 	type Locale,
 } from "discord.js";
-import type { SplitDetails } from "#src/features/split/lootsplit.ts";
+import type {
+	Lootsplit,
+	SplitDetails,
+	SplitMember,
+} from "#src/features/split/lootsplit.ts";
 import { config } from "#src/utils/config.ts";
 
 export function generateSplitDetailsEmbed(
@@ -93,6 +98,50 @@ export function generateMemberListEmbeds(memberList: string[]): EmbedBuilder[] {
 	}
 
 	return embeds;
+}
+
+function formatDate(date: Date): string {
+	return date.toISOString().replace("T", " ").split(".")[0];
+}
+
+export function createSplitAttachment(split: Lootsplit): AttachmentBuilder {
+	const details = split.getSplitDetails();
+	const memberList = split.getMemberList();
+
+	const summaryLines = [
+		"=== LOOT SPLIT SUMMARY ===",
+		`Split ID: ${details.id}`,
+		`Created By: ${details.createdBy.id} ${details.createdBy.name}`,
+		`Created At: ${formatDate(details.createdAt)} UTC`,
+		"",
+		"=== SPLIT DETAILS ===",
+		`Total Amount: ${details.totalAmount}`,
+		`Repair Cost: ${details.repairCost}`,
+		`Tax Rate: ${details.taxRate}%`,
+		`Number of Members: ${details.memberCount}`,
+		`Buyer Payment: ${details.buyerPayment}`,
+		`Split Per Person: ${details.amountPerPerson}`,
+		"",
+		"=== MEMBER LIST ===",
+		"ID Name",
+	];
+
+	const memberRows = memberList.map((member) => `${member.id} ${member.name}`);
+
+	const fileContent = [
+		...summaryLines,
+		...memberRows,
+		"",
+		"=== END OF SPLIT SUMMARY ===",
+	].join("\n");
+
+	const buffer = Buffer.from(fileContent, "utf-8");
+
+	const attachment = new AttachmentBuilder(buffer, {
+		name: `split_${split.getId()}.txt`,
+	});
+
+	return attachment;
 }
 
 export function createSplitButtonRows(): ActionRowBuilder<ButtonBuilder>[] {
