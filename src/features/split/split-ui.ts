@@ -7,11 +7,7 @@ import {
 	type EmbedField,
 	type Locale,
 } from "discord.js";
-import type {
-	Lootsplit,
-	SplitDetails,
-	SplitMember,
-} from "#src/features/split/lootsplit.ts";
+import type { Lootsplit, SplitDetails } from "#src/features/split/lootsplit.ts";
 import { config } from "#src/utils/config.ts";
 
 export function generateSplitDetailsEmbed(

@@ -1,15 +1,15 @@
 import assert from "node:assert";
 import { InteractionContextType, SlashCommandBuilder } from "discord.js";
+import { createNewSplit } from "#src/features/split/newSplit.ts";
 import type { CommandHandler } from "#src/utils/command.ts";
 import { config } from "#src/utils/config.ts";
 import { logger } from "#src/utils/logger.ts";
 import {
+	Settings,
 	createGenericEmbed,
 	guildCache,
 	isAdminOrManager,
-	Settings,
 } from "#src/utils/misc.ts";
-import { createNewSplit } from "#src/features/split/newSplit.ts";
 
 export const cooldown = 5;
 
