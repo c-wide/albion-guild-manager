@@ -10,6 +10,7 @@ import {
 	guildCache,
 	isAdminOrManager,
 } from "#src/utils/misc.ts";
+import { handleBalanceCommand } from "#src/features/split/balance.ts";
 
 export const cooldown = 5;
 
@@ -121,6 +122,7 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 	// Handle users managing their balances
 	if (i.options.getSubcommandGroup() === "balance") {
 		await i.deferReply({ ephemeral: true });
+		await handleBalanceCommand(cid, i, cachedGuild);
 		return;
 	}
 
@@ -151,6 +153,7 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 
 	// Handle creating a new split
 	if (i.options.getSubcommand() === "new") {
+		await i.deferReply();
 		await createNewSplit(cid, i, cachedGuild);
 		return;
 	}

@@ -713,9 +713,6 @@ export async function createNewSplit(
 	i: ChatInputCommandInteraction<"cached">,
 	cache: GuildDetails,
 ): Promise<void> {
-	// Initial deferral of the interaction
-	await i.deferReply();
-
 	// Create a new Lootsplit instance with the user's ID and display name
 	const split = new Lootsplit({ id: i.user.id, name: i.member.displayName });
 
