@@ -1,6 +1,7 @@
 import { db } from "#src/database/db.ts";
 import { lootSplitBalances } from "#src/database/schema.ts";
 import { config } from "#src/utils/config.ts";
+import { logger } from "#src/utils/logger.ts";
 import { createGenericEmbed, type GuildDetails } from "#src/utils/misc.ts";
 import type { ChatInputCommandInteraction } from "discord.js";
 import { and, eq } from "drizzle-orm";
@@ -10,6 +11,8 @@ async function handleViewBalance(
 	i: ChatInputCommandInteraction<"cached">,
 	cache: GuildDetails,
 ) {
+	logger.info({ cid }, "Viewing balance");
+
 	const { balance } = await db
 		.select({
 			balance: lootSplitBalances.balance,
@@ -29,7 +32,7 @@ async function handleViewBalance(
 			embeds: [
 				createGenericEmbed({
 					title: "Balance",
-					description: "You have no balance in this server",
+					description: "You don't have a balance on this server yet",
 					color: config.colors.info,
 				}),
 			],
@@ -37,7 +40,16 @@ async function handleViewBalance(
 		return;
 	}
 
-	await i.reply(`Your balance is ${balance}`);
+	await i.followUp({
+		content: "",
+		embeds: [
+			createGenericEmbed({
+				title: "Balance",
+				description: `Your balance is ${balance}`,
+				color: config.colors.info,
+			}),
+		],
+	});
 }
 
 export async function handleBalanceCommand(

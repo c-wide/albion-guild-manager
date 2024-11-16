@@ -17,6 +17,7 @@ await manager.spawn();
 startServerStatusInterval(manager);
 
 // FIXME: Fix modal for server status wizard, need filter and custom id
+// TODO: am I using logger.info vs logger.error correctly?
 // TODO: add indexes to schema
 // TODO: do I need to log collection interacitons?
 // TODO: lookup cmd by name or id
