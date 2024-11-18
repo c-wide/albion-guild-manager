@@ -35,6 +35,8 @@ import {
 } from "#src/utils/misc.ts";
 import { PaginationEmbed } from "#src/utils/pagination.ts";
 
+// FIXME: correct amount of time to wait for responses?
+
 async function handleSetTax(
 	i: ButtonInteraction,
 	split: Lootsplit,
@@ -282,9 +284,12 @@ async function handleAddMembers(
 
 	// If there was an error or timeout, delete the select message and return early
 	if (selectErr) {
-		await selectMsg.delete();
+		await i.deleteReply();
 		return;
 	}
+
+	// Defer the update to the select message
+	await selectData.deferUpdate();
 
 	// Create an embed to confirm the selected members
 	const confirmEmbed = new EmbedBuilder()
@@ -306,7 +311,7 @@ async function handleAddMembers(
 	);
 
 	// Send a message with the confirmation embed and buttons
-	const confirmMsg = await selectData.update({
+	const confirmMsg = await selectData.editReply({
 		content: "",
 		embeds: [confirmEmbed],
 		components: [confirmRow],
@@ -323,13 +328,29 @@ async function handleAddMembers(
 
 	// If there was an error or timeout, delete the confirmation message and return early
 	if (confirmErr) {
-		await confirmMsg.delete();
+		await selectData.deleteReply();
 		return;
 	}
 
+	// Defer the update to the confirmation message
+	await confirmData.deferUpdate();
+
 	// If the user canceled, delete the confirmation message and return early
 	if (confirmData.customId === "cancel") {
-		await confirmMsg.delete();
+		await confirmData.deleteReply();
+		return;
+	}
+
+	// CONTINUE FROM HERE
+
+	// Prevent bots from being added to splits
+	if (selectData.members.some((member) => member.user.bot)) {
+		await confirmData.update({
+			content: "You can't add bots to splits",
+			embeds: [],
+			components: [],
+		});
+		setTimeout(async () => await confirmMsg.delete(), 10_000);
 		return;
 	}
 
@@ -480,10 +501,14 @@ async function handleAddFromVoice(
 	}
 
 	// Map the members in the voice channel to an array of objects with id and name
-	const members = voiceChannel.members.map((member) => ({
-		id: member.user.id,
-		name: member.displayName,
-	}));
+	const members: { id: string; name: string }[] = [];
+	voiceChannel.members.forEach((member) => {
+		if (member.user.bot) return;
+		members.push({
+			id: member.user.id,
+			name: member.displayName,
+		});
+	});
 
 	// Create an embed to confirm the selected members
 	const confirmEmbed = new EmbedBuilder()

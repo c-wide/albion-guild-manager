@@ -10,7 +10,10 @@ import {
 	guildCache,
 	isAdminOrManager,
 } from "#src/utils/misc.ts";
-import { handleBalanceCommand } from "#src/features/split/balance.ts";
+import { handleBalanceActions } from "#src/features/split/balance.ts";
+import { handleAdminActions } from "./admin";
+
+// TODO: Audit log discord channel & database?
 
 export const cooldown = 5;
 
@@ -122,7 +125,7 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 	// Handle users managing their balances
 	if (i.options.getSubcommandGroup() === "balance") {
 		await i.deferReply({ ephemeral: true });
-		await handleBalanceCommand(cid, i, cachedGuild);
+		await handleBalanceActions(cid, i, cachedGuild);
 		return;
 	}
 
@@ -161,6 +164,7 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 	// Handle admin commands
 	if (i.options.getSubcommandGroup() === "admin") {
 		await i.deferReply({ ephemeral: true });
+		await handleAdminActions(cid, i, cachedGuild);
 		return;
 	}
 };

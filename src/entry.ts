@@ -25,6 +25,7 @@ startServerStatusInterval(manager);
 // TODO: welcome message to inviter DM
 // TODO: remove interactables upon timeout
 // TODO: feedback cmd?
+// TODO: guild attendance command
 // TODO: request coalescing to prevent external API overusage
 // TODO: middleware system for stuff like changes to servers?
 // TODO: add name localizaitons to command builders
