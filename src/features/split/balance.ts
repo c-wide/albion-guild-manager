@@ -18,7 +18,7 @@ async function handleViewBalance(
 	i: ChatInputCommandInteraction<"cached">,
 	cache: GuildDetails,
 ): Promise<void> {
-	const { balance } = await db
+	const [record] = await db
 		.select({
 			balance: lootSplitBalances.balance,
 		})
@@ -28,31 +28,16 @@ async function handleViewBalance(
 				eq(lootSplitBalances.serverId, cache.id),
 				eq(lootSplitBalances.memberId, i.user.id),
 			),
-		)
-		.then((r) => r[0] ?? {});
+		);
 
 	logger.info({ cid }, "Viewing balance");
-
-	if (!balance) {
-		await i.followUp({
-			content: "",
-			embeds: [
-				createGenericEmbed({
-					title: "Balance",
-					description: "You don't have a balance on this server yet",
-					color: config.colors.info,
-				}),
-			],
-		});
-		return;
-	}
 
 	await i.followUp({
 		content: "",
 		embeds: [
 			createGenericEmbed({
 				title: "Balance",
-				description: `Your balance is ${balance}`,
+				description: `You have ${record?.balance ?? 0} silver`,
 				color: config.colors.info,
 			}),
 		],
