@@ -171,7 +171,7 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 		await until(() =>
 			message.awaitMessageComponent({
 				filter: (mi) => mi.user.id === i.user.id,
-				time: 60_000 * 3,
+				time: 3 * 60_000,
 				componentType: ComponentType.StringSelect,
 			}),
 		);
