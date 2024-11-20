@@ -35,8 +35,6 @@ import {
 } from "#src/utils/misc.ts";
 import { PaginationEmbed } from "#src/utils/pagination.ts";
 
-// FIXME: correct amount of time to wait for responses?
-
 async function handleSetTax(
 	i: ButtonInteraction,
 	split: Lootsplit,
@@ -70,7 +68,7 @@ async function handleSetTax(
 	const { error, data } = await until(() =>
 		i.awaitModalSubmit({
 			filter: (mi) => mi.customId === `taxRate-${i.id}`,
-			time: 60_000,
+			time: 2 * 60_000,
 		}),
 	);
 
@@ -141,7 +139,7 @@ async function handleSetTotalAmount(
 	const { error, data } = await until(() =>
 		i.awaitModalSubmit({
 			filter: (mi) => mi.customId === `totalAmount-${i.id}`,
-			time: 60_000,
+			time: 2 * 60_000,
 		}),
 	);
 
@@ -212,7 +210,7 @@ async function handleSetRepairCost(
 	const { error, data } = await until(() =>
 		i.awaitModalSubmit({
 			filter: (mi) => mi.customId === `repairCost-${i.id}`,
-			time: 60_000,
+			time: 2 * 60_000,
 		}),
 	);
 
@@ -256,6 +254,9 @@ async function handleAddMembers(
 	mainMessage: Message,
 	memberList: PaginationEmbed,
 ): Promise<void> {
+	// Defer the reply to the button interaction
+	await i.deferReply({ ephemeral: true });
+
 	// Create a user select menu for adding members
 	const selectRow = new ActionRowBuilder<UserSelectMenuBuilder>().addComponents(
 		new UserSelectMenuBuilder()
@@ -266,7 +267,7 @@ async function handleAddMembers(
 	);
 
 	// Send a message with the user select menu
-	const selectMsg = await i.reply({
+	const selectMsg = await i.followUp({
 		content: "Select the members you want to add to the split",
 		components: [selectRow],
 		ephemeral: true,
@@ -321,7 +322,7 @@ async function handleAddMembers(
 	const { error: confirmErr, data: confirmData } = await until(() =>
 		confirmMsg.awaitMessageComponent({
 			filter: (mi) => mi.user.id === i.user.id,
-			time: 5 * 60_000,
+			time: 3 * 60_000,
 			componentType: ComponentType.Button,
 		}),
 	);
@@ -341,16 +342,14 @@ async function handleAddMembers(
 		return;
 	}
 
-	// CONTINUE FROM HERE
-
 	// Prevent bots from being added to splits
 	if (selectData.members.some((member) => member.user.bot)) {
-		await confirmData.update({
+		await confirmData.editReply({
 			content: "You can't add bots to splits",
 			embeds: [],
 			components: [],
 		});
-		setTimeout(async () => await confirmMsg.delete(), 10_000);
+		setTimeout(async () => await confirmData.deleteReply(), 10_000);
 		return;
 	}
 
@@ -370,7 +369,7 @@ async function handleAddMembers(
 			embeds: [generateSplitDetailsEmbed(split.getSplitDetails(), i.locale)],
 		}),
 		memberList.setEmbeds(generateMemberListEmbeds(split.getMemberIds())),
-		confirmMsg.delete(),
+		confirmData.deleteReply(),
 	]);
 }
 
@@ -380,6 +379,9 @@ async function handleRemoveMembers(
 	mainMessage: Message,
 	memberList: PaginationEmbed,
 ): Promise<void> {
+	// Defer the reply to the button interaction
+	await i.deferReply({ ephemeral: true });
+
 	// Create a user select menu for removing members
 	const selectRow = new ActionRowBuilder<UserSelectMenuBuilder>().addComponents(
 		new UserSelectMenuBuilder()
@@ -390,7 +392,7 @@ async function handleRemoveMembers(
 	);
 
 	// Send a message with the user select menu
-	const selectMsg = await i.reply({
+	const selectMsg = await i.followUp({
 		content: "Select the members you want to remove from the split",
 		components: [selectRow],
 		ephemeral: true,
@@ -408,9 +410,12 @@ async function handleRemoveMembers(
 
 	// If there was an error or timeout, delete the select message and return early
 	if (selectErr) {
-		await selectMsg.delete();
+		await i.deleteReply();
 		return;
 	}
+
+	// Defer the update to the select message
+	await selectData.deferUpdate();
 
 	// Create an embed to confirm the selected members
 	const confirmEmbed = new EmbedBuilder()
@@ -432,7 +437,7 @@ async function handleRemoveMembers(
 	);
 
 	// Send a message with the confirmation embed and buttons
-	const confirmMsg = await selectData.update({
+	const confirmMsg = await selectData.editReply({
 		content: "",
 		embeds: [confirmEmbed],
 		components: [confirmRow],
@@ -442,20 +447,23 @@ async function handleRemoveMembers(
 	const { error: confirmErr, data: confirmData } = await until(() =>
 		confirmMsg.awaitMessageComponent({
 			filter: (mi) => mi.user.id === i.user.id,
-			time: 5 * 60_000,
+			time: 3 * 60_000,
 			componentType: ComponentType.Button,
 		}),
 	);
 
 	// If there was an error or timeout, delete the confirmation message and return early
 	if (confirmErr) {
-		await confirmMsg.delete();
+		await selectData.deleteReply();
 		return;
 	}
 
+	// Defer the update to the confirmation message
+	await confirmData.deferUpdate();
+
 	// If the user canceled, delete the confirmation message and return early
 	if (confirmData.customId === "cancel") {
-		await confirmMsg.delete();
+		await confirmData.deleteReply();
 		return;
 	}
 
@@ -478,7 +486,7 @@ async function handleRemoveMembers(
 			embeds: [generateSplitDetailsEmbed(split.getSplitDetails(), i.locale)],
 		}),
 		memberList.setEmbeds(generateMemberListEmbeds(split.getMemberIds())),
-		confirmMsg.delete(),
+		confirmData.deleteReply(),
 	]);
 }
 
@@ -488,15 +496,17 @@ async function handleAddFromVoice(
 	mainMessage: Message,
 	memberList: PaginationEmbed,
 ): Promise<void> {
+	// Defer the reply to the button interaction
+	await i.deferReply({ ephemeral: true });
+
 	// Get the voice channel the user is in
 	const voiceChannel = i.member.voice.channel;
 	if (!voiceChannel) {
 		// If the user is not in a voice channel, send an ephemeral message and return
-		const res = await i.reply({
+		await i.followUp({
 			content: "You must be in a voice channel to use this feature",
-			ephemeral: true,
 		});
-		setTimeout(async () => await res.delete(), 10_000);
+		setTimeout(async () => await i.deleteReply(), 10_000);
 		return;
 	}
 
@@ -531,19 +541,17 @@ async function handleAddFromVoice(
 	);
 
 	// Send a message with the confirmation embed and buttons
-	const confirmMsg = await i.reply({
+	const confirmMsg = await i.followUp({
 		content: "",
 		embeds: [confirmEmbed],
 		components: [confirmRow],
-		ephemeral: true,
-		fetchReply: true,
 	});
 
 	// Wait for the user to confirm or cancel
 	const { error: confirmErr, data: confirmData } = await until(() =>
 		confirmMsg.awaitMessageComponent({
 			filter: (mi) => mi.user.id === i.user.id,
-			time: 5 * 60_000,
+			time: 3 * 60_000,
 			componentType: ComponentType.Button,
 		}),
 	);
@@ -554,9 +562,12 @@ async function handleAddFromVoice(
 		return;
 	}
 
+	// Defer the update to the confirmation message
+	await confirmData.deferUpdate();
+
 	// If the user canceled, delete the reply and return early
 	if (confirmData.customId === "cancel") {
-		await i.deleteReply();
+		await confirmData.deleteReply();
 		return;
 	}
 
@@ -575,7 +586,7 @@ async function handleAddFromVoice(
 			embeds: [generateSplitDetailsEmbed(split.getSplitDetails(), i.locale)],
 		}),
 		memberList.setEmbeds(generateMemberListEmbeds(split.getMemberIds())),
-		i.deleteReply(),
+		confirmData.deleteReply(),
 	]);
 }
 
@@ -585,7 +596,6 @@ export async function handleCancelSplit(
 	memberList: PaginationEmbed,
 	collector: InteractionCollector<ButtonInteraction<"cached">>,
 ): Promise<void> {
-	// Stop the collector and cleanup the main message and member list
 	collector.stop();
 	await Promise.allSettled([mainMessage.delete(), memberList.cleanup()]);
 	logger.info({ splitId: split.getId() }, "Split cancelled");
@@ -618,9 +628,12 @@ async function handleEndSplit(
 	memberList: PaginationEmbed,
 	collector: InteractionCollector<ButtonInteraction<"cached">>,
 ): Promise<void> {
+	// Defer the reply to the button interaction
+	await i.deferReply({ ephemeral: true });
+
 	// Check if the total amount is set
 	if (split.getTotalAmount() < 1) {
-		await i.reply({
+		await i.followUp({
 			content: "You must set a total amount before ending the split",
 			ephemeral: true,
 		});
@@ -630,7 +643,7 @@ async function handleEndSplit(
 
 	// Check if there is at least one member in the split
 	if (split.getMemberCount() < 1) {
-		await i.reply({
+		await i.followUp({
 			content: "You must have at least one member in the split to end it",
 			ephemeral: true,
 		});
@@ -656,7 +669,7 @@ async function handleEndSplit(
 	);
 
 	// Send a message with the confirmation embed and buttons
-	const confirmMsg = await i.reply({
+	const confirmMsg = await i.followUp({
 		content: "",
 		embeds: [
 			createGenericEmbed({
@@ -666,8 +679,6 @@ async function handleEndSplit(
 			}),
 		],
 		components: [confirmRow],
-		ephemeral: true,
-		fetchReply: true,
 	});
 
 	// Wait for the user to confirm or cancel
@@ -689,6 +700,9 @@ async function handleEndSplit(
 		]);
 		return;
 	}
+
+	// Defer the update to the confirmation message
+	await confirmData.deferUpdate();
 
 	// Log the split ending
 	logger.info(

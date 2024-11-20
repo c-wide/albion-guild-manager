@@ -141,6 +141,9 @@ async function handleTransferBalance(
 		return;
 	}
 
+	// Defer update to prevent timeouts
+	await confirmData.deferUpdate();
+
 	// Sort ids to prevent deadlocks
 	const [firstId, secondId] = [i.user.id, tgtUser.id].sort();
 
@@ -181,7 +184,7 @@ async function handleTransferBalance(
 		// Check if source has enough balance
 		if (!srcRecord || srcRecord.balance < xferAmt) {
 			logger.info({ cid }, "Insufficient funds for transfer");
-			await confirmData.update({
+			await confirmData.editReply({
 				content: "",
 				embeds: [
 					createGenericEmbed({
@@ -223,7 +226,7 @@ async function handleTransferBalance(
 			"Transfer complete",
 		);
 
-		await confirmData.update({
+		await confirmData.editReply({
 			content: "",
 			embeds: [
 				createGenericEmbed({
