@@ -1,22 +1,22 @@
+import { until } from "@open-draft/until";
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
 	ButtonStyle,
-	ChatInputCommandInteraction,
+	type ChatInputCommandInteraction,
 	ComponentType,
 	PermissionFlagsBits,
 } from "discord.js";
-import {
-	createGenericEmbed,
-	Settings,
-	type GuildDetails,
-} from "#src/utils/misc.ts";
-import { config } from "#src/utils/config.ts";
-import { until } from "@open-draft/until";
+import { and, eq } from "drizzle-orm";
 import { db } from "#src/database/db.ts";
 import { lootSplitBalances, serverSettings } from "#src/database/schema.ts";
-import { and, eq } from "drizzle-orm";
+import { config } from "#src/utils/config.ts";
 import { logger } from "#src/utils/logger.ts";
+import {
+	type GuildDetails,
+	Settings,
+	createGenericEmbed,
+} from "#src/utils/misc.ts";
 
 async function handlePayout(
 	cid: string,

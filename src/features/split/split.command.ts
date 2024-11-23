@@ -1,5 +1,6 @@
 import assert from "node:assert";
 import { InteractionContextType, SlashCommandBuilder } from "discord.js";
+import { handleBalanceActions } from "#src/features/split/balance.ts";
 import { createNewSplit } from "#src/features/split/newSplit.ts";
 import type { CommandHandler } from "#src/utils/command.ts";
 import { config } from "#src/utils/config.ts";
@@ -10,7 +11,6 @@ import {
 	guildCache,
 	isAdminOrManager,
 } from "#src/utils/misc.ts";
-import { handleBalanceActions } from "#src/features/split/balance.ts";
 import { handleAdminActions } from "./admin";
 
 // TODO: Audit log discord channel

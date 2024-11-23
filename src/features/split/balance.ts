@@ -1,17 +1,17 @@
-import { db } from "#src/database/db.ts";
-import { lootSplitBalances } from "#src/database/schema.ts";
-import { config } from "#src/utils/config.ts";
-import { logger } from "#src/utils/logger.ts";
-import { createGenericEmbed, type GuildDetails } from "#src/utils/misc.ts";
 import { until } from "@open-draft/until";
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
 	ButtonStyle,
-	ComponentType,
 	type ChatInputCommandInteraction,
+	ComponentType,
 } from "discord.js";
 import { and, eq } from "drizzle-orm";
+import { db } from "#src/database/db.ts";
+import { lootSplitBalances } from "#src/database/schema.ts";
+import { config } from "#src/utils/config.ts";
+import { logger } from "#src/utils/logger.ts";
+import { type GuildDetails, createGenericEmbed } from "#src/utils/misc.ts";
 
 async function handleViewBalance(
 	cid: string,
