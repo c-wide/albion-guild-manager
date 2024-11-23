@@ -4,12 +4,17 @@ import {
 	ButtonStyle,
 	ChatInputCommandInteraction,
 	ComponentType,
+	PermissionFlagsBits,
 } from "discord.js";
-import { createGenericEmbed, type GuildDetails } from "#src/utils/misc.ts";
+import {
+	createGenericEmbed,
+	Settings,
+	type GuildDetails,
+} from "#src/utils/misc.ts";
 import { config } from "#src/utils/config.ts";
 import { until } from "@open-draft/until";
 import { db } from "#src/database/db.ts";
-import { lootSplitBalances } from "#src/database/schema.ts";
+import { lootSplitBalances, serverSettings } from "#src/database/schema.ts";
 import { and, eq } from "drizzle-orm";
 import { logger } from "#src/utils/logger.ts";
 
@@ -264,6 +269,126 @@ async function handleSetBalance(
 	});
 }
 
+async function handleSetManagerRole(
+	cid: string,
+	i: ChatInputCommandInteraction<"cached">,
+	cache: GuildDetails,
+) {
+	// Only users with ManageGuild permission can set split manager role
+	if (i.memberPermissions.has(PermissionFlagsBits.ManageGuild) === false) {
+		logger.info({ cid }, "User lacks permission to set manager role");
+		await i.followUp({
+			content: "",
+			embeds: [
+				createGenericEmbed({
+					title: "Set Manager Role",
+					description: "You lack permission to set the split manager role",
+					color: config.colors.warning,
+				}),
+			],
+		});
+		return;
+	}
+
+	// Extract options
+	const role = i.options.getRole("role", true);
+
+	// Check if role is managed
+	if (role.managed) {
+		await i.followUp({
+			content: "",
+			embeds: [
+				createGenericEmbed({
+					title: "Set Manager Role",
+					description:
+						"Bot managed roles cannot be set as the split manager role",
+					color: config.colors.warning,
+				}),
+			],
+		});
+		return;
+	}
+
+	// Create buttons for confirming or canceling the action
+	const confirmRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+		new ButtonBuilder()
+			.setCustomId("confirm")
+			.setLabel("Confirm")
+			.setStyle(ButtonStyle.Primary),
+		new ButtonBuilder()
+			.setCustomId("cancel")
+			.setLabel("Cancel")
+			.setStyle(ButtonStyle.Danger),
+	);
+
+	// Send a message with the confirmation embed and buttons
+	const confirmMsg = await i.followUp({
+		content: "",
+		embeds: [
+			createGenericEmbed({
+				title: "Set Manager Role",
+				description: `Are you sure you want to set the split manager role to <@&${role.id}>?`,
+				color: config.colors.info,
+			}),
+		],
+		components: [confirmRow],
+	});
+
+	// Wait for the user to confirm or cancel
+	const { error: confirmErr, data: confirmData } = await until(() =>
+		confirmMsg.awaitMessageComponent({
+			filter: (mi) => mi.user.id === i.user.id,
+			time: 3 * 60_000,
+			componentType: ComponentType.Button,
+		}),
+	);
+
+	// If there was an error or cancelation, delete the confirmation message and return early
+	if (confirmErr || confirmData.customId === "cancel") {
+		logger.info({ cid }, "Set manager role canceled");
+		await i.deleteReply();
+		return;
+	}
+
+	// Defer confirmation update
+	await confirmData.deferUpdate();
+
+	// Update db
+	await db
+		.insert(serverSettings)
+		.values({
+			serverId: cache.id,
+			key: Settings.SplitManagerRole,
+			value: `snowflake_${role.id}`,
+		})
+		.onConflictDoUpdate({
+			target: [serverSettings.serverId, serverSettings.key],
+			set: {
+				value: `snowflake_${role.id}`,
+				updatedAt: new Date(),
+			},
+		});
+
+	// Set manager role
+	cache.settings.set(Settings.SplitManagerRole, role.id);
+
+	// Log things
+	logger.info({ cid, roleId: role.id }, "Manager role set");
+
+	// Notify user of role change
+	await confirmData.editReply({
+		content: "",
+		embeds: [
+			createGenericEmbed({
+				title: "Set Manager Role",
+				description: `Set the split manager role to <@&${role.id}>`,
+				color: config.colors.info,
+			}),
+		],
+		components: [],
+	});
+}
+
 export async function handleAdminActions(
 	cid: string,
 	i: ChatInputCommandInteraction<"cached">,
@@ -283,6 +408,7 @@ export async function handleAdminActions(
 			break;
 		}
 		case "set_manager_role": {
+			await handleSetManagerRole(cid, i, cache);
 			break;
 		}
 	}
