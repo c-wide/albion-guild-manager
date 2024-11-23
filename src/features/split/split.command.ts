@@ -13,7 +13,7 @@ import {
 import { handleBalanceActions } from "#src/features/split/balance.ts";
 import { handleAdminActions } from "./admin";
 
-// TODO: Audit log discord channel & database?
+// TODO: Audit log discord channel
 
 export const cooldown = 5;
 
@@ -136,17 +136,17 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 
 	// Check if user has permission to create / manage splits
 	if (
-		(managerRole && !i.member.roles.cache.has(managerRole)) ||
-		!isAdminOrManager(i.member, cachedGuild)
+		!isAdminOrManager(i.member, cachedGuild) &&
+		(!managerRole || !i.member.roles.cache.has(managerRole))
 	) {
-		logger.info({ cid }, "User lacks permission");
+		logger.info({ cid }, "User lacks permission to manage splits");
 		await i.reply({
 			content: "",
 			ephemeral: true,
 			embeds: [
 				createGenericEmbed({
 					title: " ",
-					description: "You lack permission",
+					description: "You do not have permission to manage splits",
 					color: config.colors.warning,
 				}),
 			],
