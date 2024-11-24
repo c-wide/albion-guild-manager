@@ -12,7 +12,7 @@ import {
 
 export async function setChannel(
 	cid: string,
-	i: ChatInputCommandInteraction,
+	i: ChatInputCommandInteraction<"cached">,
 	cache: GuildDetails,
 ): Promise<void> {
 	// Get target channel

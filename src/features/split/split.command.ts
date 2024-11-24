@@ -115,9 +115,6 @@ export const builder = new SlashCommandBuilder()
 	.setContexts(InteractionContextType.Guild);
 
 export const handler: CommandHandler = async ({ cid, i }) => {
-	// Mostly typescript non-sense
-	if (!i.inCachedGuild()) return;
-
 	// Retreive cached guild
 	const cachedGuild = guildCache.get(i.guildId ?? "");
 	assert(cachedGuild, "Guild not found in cache");

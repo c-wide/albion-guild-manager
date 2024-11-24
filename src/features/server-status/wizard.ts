@@ -30,7 +30,7 @@ import {
 
 async function showRegionSelector(
 	cid: string,
-	i: ChatInputCommandInteraction,
+	i: ChatInputCommandInteraction<"cached">,
 ): Promise<StringSelectMenuInteraction | null> {
 	// Configure server region options
 	const options = config.albionServerRegions.map((region) => {
@@ -326,7 +326,7 @@ async function showChannelSelector(
 
 async function showConfirmation(
 	cid: string,
-	i: ChatInputCommandInteraction,
+	i: ChatInputCommandInteraction<"cached">,
 	regions: AlbionServerRegion[],
 	channelId: string,
 ): Promise<ButtonInteraction | null> {
@@ -408,7 +408,7 @@ async function showConfirmation(
 
 export async function setupWizard(
 	cid: string,
-	i: ChatInputCommandInteraction,
+	i: ChatInputCommandInteraction<"cached">,
 	cache: GuildDetails,
 ): Promise<void> {
 	// Which regions does the user want to track

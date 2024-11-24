@@ -13,7 +13,7 @@ import {
 
 export async function addRegion(
 	cid: string,
-	i: ChatInputCommandInteraction,
+	i: ChatInputCommandInteraction<"cached">,
 	cache: GuildDetails,
 ): Promise<void> {
 	// Get region to be added from user provided option
@@ -88,7 +88,7 @@ export async function addRegion(
 
 export async function removeRegion(
 	cid: string,
-	i: ChatInputCommandInteraction,
+	i: ChatInputCommandInteraction<"cached">,
 	cache: GuildDetails,
 ): Promise<void> {
 	// Get region to be removed from user provided option
@@ -163,7 +163,7 @@ export async function removeRegion(
 
 export async function viewRegions(
 	cid: string,
-	i: ChatInputCommandInteraction,
+	i: ChatInputCommandInteraction<"cached">,
 	cache: GuildDetails,
 ): Promise<void> {
 	// Get configured regions from cache

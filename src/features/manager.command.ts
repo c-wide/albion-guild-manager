@@ -186,7 +186,7 @@ export const builder = new SlashCommandBuilder()
 
 async function removeManager(
 	cid: string,
-	i: ChatInputCommandInteraction,
+	i: ChatInputCommandInteraction<"cached">,
 	cache: GuildDetails,
 ): Promise<void> {
 	// Extract subcommand option string
@@ -272,7 +272,7 @@ async function removeManager(
 
 async function addManager(
 	cid: string,
-	i: ChatInputCommandInteraction,
+	i: ChatInputCommandInteraction<"cached">,
 	cache: GuildDetails,
 ): Promise<void> {
 	// Extract subcommand option string
@@ -357,7 +357,7 @@ async function addManager(
 
 async function viewManagers(
 	cid: string,
-	i: ChatInputCommandInteraction,
+	i: ChatInputCommandInteraction<"cached">,
 	cache: GuildDetails,
 ): Promise<void> {
 	// Extract role and user manager settings

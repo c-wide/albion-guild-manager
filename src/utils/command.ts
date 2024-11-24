@@ -9,7 +9,7 @@ import {
 import { z } from "zod";
 
 export type CommandHandler = (props: {
-	i: ChatInputCommandInteraction;
+	i: ChatInputCommandInteraction<"cached">;
 	cid: string;
 }) => void | Promise<void>;
 

@@ -13,7 +13,7 @@ import {
 
 export async function enableNotifications(
 	cid: string,
-	i: ChatInputCommandInteraction,
+	i: ChatInputCommandInteraction<"cached">,
 	cache: GuildDetails,
 ): Promise<void> {
 	// Check if notifications are already enabled
@@ -119,7 +119,7 @@ export async function enableNotifications(
 
 export async function disableNotifications(
 	cid: string,
-	i: ChatInputCommandInteraction,
+	i: ChatInputCommandInteraction<"cached">,
 	cache: GuildDetails,
 ): Promise<void> {
 	// Check if server status notifications are already disabled

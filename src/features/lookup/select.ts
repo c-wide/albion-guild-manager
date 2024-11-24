@@ -10,7 +10,7 @@ import type { SearchResult } from "#src/features/lookup/search.ts";
 import i18n from "#src/utils/i18n.ts";
 
 export async function sendSelectMenu(
-	i: ChatInputCommandInteraction,
+	i: ChatInputCommandInteraction<"cached">,
 	options: SearchOptions,
 	searchResults: SearchResult[],
 ): Promise<Message> {

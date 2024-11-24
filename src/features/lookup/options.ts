@@ -9,7 +9,9 @@ export type SearchOptions = {
 	isPublic: boolean;
 };
 
-export function parseOptions(i: ChatInputCommandInteraction): SearchOptions {
+export function parseOptions(
+	i: ChatInputCommandInteraction<"cached">,
+): SearchOptions {
 	const entityType = i.options.getSubcommand() as
 		| "player"
 		| "guild"
