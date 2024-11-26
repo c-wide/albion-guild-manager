@@ -116,6 +116,6 @@ export const serverStatus = {
 		channelActionChoice: "Where would you like the status notifications to go?",
 		regionSelect: "Choose which regions you want status notifications for",
 		cantSendMessages:
-			"The bot does not have permission to send messages in the selected channel",
+			"Bot lacks permission to view and send messages in the selected channel",
 	},
 } as const;
