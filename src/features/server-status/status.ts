@@ -1,6 +1,6 @@
 import { performance } from "node:perf_hooks";
 import { until } from "@open-draft/until";
-import type { ShardingManager } from "discord.js";
+import { PermissionsBitField, type ShardingManager } from "discord.js";
 import { type AlbionServerRegion, config } from "#src/utils/config.ts";
 import { logger } from "#src/utils/logger.ts";
 import { sdks } from "#src/utils/misc.ts";
@@ -92,6 +92,20 @@ async function processServerStatus(
 
 				// Check if the channel is configured correctly
 				if (channel.isTextBased() === false) return;
+
+				// Check if bot is still in guild
+				if (g.members.me === null) return;
+
+				// Check if bot has permissions to send messages in channel
+				if (
+					channel
+						.permissionsFor(g.members.me)
+						.has([
+							PermissionsBitField.Flags.ViewChannel,
+							PermissionsBitField.Flags.SendMessages,
+						]) === false
+				)
+					return;
 
 				// If everything is ok, send the embed
 				channel.send({

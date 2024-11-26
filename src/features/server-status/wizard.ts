@@ -207,6 +207,7 @@ async function createChannel(
 
 	// Typescript non-sense
 	if (!data.isFromMessage()) return null;
+	if (i.guild?.members.me === null) return null;
 
 	// Update user were creating their channel
 	await data.update({
@@ -240,6 +241,13 @@ async function createChannel(
 					PermissionsBitField.Flags.UseApplicationCommands,
 					PermissionsBitField.Flags.UseEmbeddedActivities,
 					PermissionsBitField.Flags.UseExternalApps,
+				],
+			},
+			{
+				id: i.guild.members.me,
+				allow: [
+					PermissionsBitField.Flags.ViewChannel,
+					PermissionsBitField.Flags.SendMessages,
 				],
 			},
 		],
@@ -307,8 +315,38 @@ async function showChannelSelector(
 		return null;
 	}
 
+	// Typescript non-sense
+	if (i.guild?.members.me === null) return null;
+
 	// Extract channel id
 	const channelId = data.values[0];
+
+	// Check if the bot has permission to send messages in the channel
+	if (
+		i.guild?.channels.cache
+			.get(channelId)
+			?.permissionsFor(i.guild.members.me)
+			.has([
+				PermissionsBitField.Flags.ViewChannel,
+				PermissionsBitField.Flags.SendMessages,
+			]) === false
+	) {
+		await data.update({
+			content: "",
+			embeds: [
+				createGenericEmbed({
+					title: " ",
+					description: i18n.t("serverStatus.responses.cantSendMessages", {
+						ns: "commands",
+						lng: i.locale,
+					}),
+					color: config.colors.warning,
+				}),
+			],
+			components: [],
+		});
+		return null;
+	}
 
 	// Update user with the channel they selected
 	await data.update({

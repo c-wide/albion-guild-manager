@@ -1,4 +1,8 @@
-import { ChannelType, type ChatInputCommandInteraction } from "discord.js";
+import {
+	ChannelType,
+	PermissionsBitField,
+	type ChatInputCommandInteraction,
+} from "discord.js";
 import { db } from "#src/database/db.ts";
 import { serverSettings } from "#src/database/schema.ts";
 import { config } from "#src/utils/config.ts";
@@ -50,6 +54,35 @@ export async function setChannel(
 						lng: i.locale,
 					}),
 					color: config.colors.info,
+				}),
+			],
+		});
+		return;
+	}
+
+	// Check if the bot is in the guild
+	if (i.guild.members.me === null) throw new Error("Bot is not in guild");
+
+	// Check if the bot has permissions to send messages in the channel
+	if (
+		channel
+			.permissionsFor(i.guild.members.me)
+			.has([
+				PermissionsBitField.Flags.ViewChannel,
+				PermissionsBitField.Flags.SendMessages,
+			]) === false
+	) {
+		logger.info({ cid }, "Cant send messages in channel");
+		await i.followUp({
+			content: "",
+			embeds: [
+				createGenericEmbed({
+					title: " ",
+					description: i18n.t("serverStatus.responses.cantSendMessages", {
+						ns: "commands",
+						lng: i.locale,
+					}),
+					color: config.colors.warning,
 				}),
 			],
 		});
