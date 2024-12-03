@@ -109,6 +109,7 @@ export function createSplitAttachment(split: Lootsplit): AttachmentBuilder {
 		`Split ID: ${details.id}`,
 		`Created By: ${details.createdBy.id} ${details.createdBy.name}`,
 		`Created At: ${formatDate(details.createdAt)} UTC`,
+		`Ended At: ${formatDate(new Date())} UTC`,
 		"",
 		"=== SPLIT DETAILS ===",
 		`Total Amount: ${details.totalAmount}`,
