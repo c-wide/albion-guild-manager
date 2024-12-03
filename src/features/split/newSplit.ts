@@ -11,6 +11,8 @@ import {
 	type Message,
 	type ModalActionRowComponentBuilder,
 	ModalBuilder,
+	PermissionsBitField,
+	type TextChannel,
 	TextInputBuilder,
 	TextInputStyle,
 	UserSelectMenuBuilder,
@@ -30,6 +32,7 @@ import { config } from "#src/utils/config.ts";
 import { logger } from "#src/utils/logger.ts";
 import {
 	type GuildDetails,
+	Settings,
 	createGenericEmbed,
 	getErrorMessage,
 } from "#src/utils/misc.ts";
@@ -744,7 +747,36 @@ async function handleEndSplit(
 				}),
 			],
 		});
+
+		return;
 	}
+
+	// Check if guild has a split audit log channel
+	const auditLogChannelId = cache.settings.get(Settings.SplitAuditLogChannel) as
+		| string
+		| undefined;
+	if (!auditLogChannelId) return;
+
+	// Check if the channel still exists
+	const auditLogChannel = i.guild.channels.cache.get(auditLogChannelId);
+	if (!auditLogChannel) return;
+
+	// Check if bot is still in the guild
+	if (i.guild.members.me === null) return;
+
+	// Check if bot has permissions to send messages in the channel
+	const canSendMessages = auditLogChannel
+		.permissionsFor(i.guild.members.me)
+		.has([
+			PermissionsBitField.Flags.ViewChannel,
+			PermissionsBitField.Flags.SendMessages,
+		]);
+	if (!canSendMessages) return;
+
+	// Send the split details to the audit log channel
+	await (auditLogChannel as TextChannel).send({
+		files: [createSplitAttachment(split)],
+	});
 }
 
 export async function createNewSplit(

@@ -5,13 +5,19 @@ import {
 	ButtonStyle,
 	type ChatInputCommandInteraction,
 	ComponentType,
+	PermissionsBitField,
+	type TextChannel,
 } from "discord.js";
 import { and, eq } from "drizzle-orm";
 import { db } from "#src/database/db.ts";
 import { lootSplitBalances } from "#src/database/schema.ts";
 import { config } from "#src/utils/config.ts";
 import { logger } from "#src/utils/logger.ts";
-import { type GuildDetails, createGenericEmbed } from "#src/utils/misc.ts";
+import {
+	type GuildDetails,
+	Settings,
+	createGenericEmbed,
+} from "#src/utils/misc.ts";
 
 async function handleViewBalance(
 	cid: string,
@@ -205,23 +211,57 @@ async function handleTransferBalance(
 					},
 				}),
 		]);
+	});
 
-		logger.info(
-			{ cid, srcId: i.user.id, tgtId: tgtUser.id, xferAmt },
-			"Transfer complete",
-		);
+	logger.info(
+		{ cid, srcId: i.user.id, tgtId: tgtUser.id, xferAmt },
+		"Transfer complete",
+	);
 
-		await confirmData.editReply({
-			content: "",
-			embeds: [
-				createGenericEmbed({
-					title: "Transfer",
-					description: `Successfully transferred ${xferAmt} silver to <@${tgtUser.id}>`,
-					color: config.colors.info,
-				}),
-			],
-			components: [],
-		});
+	await confirmData.editReply({
+		content: "",
+		embeds: [
+			createGenericEmbed({
+				title: "Transfer",
+				description: `Successfully transferred ${xferAmt} silver to <@${tgtUser.id}>`,
+				color: config.colors.info,
+			}),
+		],
+		components: [],
+	});
+
+	// Check if guild has a split audit log channel
+	const auditLogChannelId = cache.settings.get(Settings.SplitAuditLogChannel) as
+		| string
+		| undefined;
+	if (!auditLogChannelId) return;
+
+	// Check if the channel still exists
+	const auditLogChannel = i.guild.channels.cache.get(auditLogChannelId);
+	if (!auditLogChannel) return;
+
+	// Check if bot is still in the guild
+	if (i.guild.members.me === null) return;
+
+	// Check if bot has permissions to send messages in the channel
+	const canSendMessages = auditLogChannel
+		.permissionsFor(i.guild.members.me)
+		.has([
+			PermissionsBitField.Flags.ViewChannel,
+			PermissionsBitField.Flags.SendMessages,
+		]);
+	if (!canSendMessages) return;
+
+	// Send the split details to the audit log channel
+	await (auditLogChannel as TextChannel).send({
+		content: "",
+		embeds: [
+			createGenericEmbed({
+				title: "Transfer",
+				description: `<@${i.user.id}> transferred ${xferAmt} silver to <@${tgtUser.id}>`,
+				color: config.colors.info,
+			}),
+		],
 	});
 }
 

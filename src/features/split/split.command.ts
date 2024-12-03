@@ -1,5 +1,9 @@
 import assert from "node:assert";
-import { InteractionContextType, SlashCommandBuilder } from "discord.js";
+import {
+	ChannelType,
+	InteractionContextType,
+	SlashCommandBuilder,
+} from "discord.js";
 import { handleBalanceActions } from "#src/features/split/balance.ts";
 import { createNewSplit } from "#src/features/split/newSplit.ts";
 import type { CommandHandler } from "#src/utils/command.ts";
@@ -12,8 +16,6 @@ import {
 	isAdminOrManager,
 } from "#src/utils/misc.ts";
 import { handleAdminActions } from "./admin";
-
-// TODO: Audit log discord channel
 
 export const cooldown = 5;
 
@@ -108,6 +110,43 @@ export const builder = new SlashCommandBuilder()
 						option
 							.setName("role")
 							.setDescription("Role that can manage splits")
+							.setRequired(true),
+					),
+			)
+			.addSubcommand((subcommand) =>
+				subcommand
+					.setName("set_audit_log_channel")
+					.setDescription("Set the channel to log balance changes")
+					.addChannelOption((option) =>
+						option
+							.setName("channel")
+							.setDescription("Channel to log balance changes")
+							.addChannelTypes(ChannelType.GuildText)
+							.setRequired(true),
+					),
+			)
+			.addSubcommand((subcommand) =>
+				subcommand
+					.setName("export")
+					.setDescription("Export all balance data for the guild")
+					.addStringOption((option) =>
+						option
+							.setName("format")
+							.setDescription("The format to export the data in")
+							.addChoices([
+								{
+									name: "CSV",
+									value: "CSV",
+								},
+								{
+									name: "JSON",
+									value: "JSON",
+								},
+								{
+									name: "XLSX",
+									value: "XLSX",
+								},
+							])
 							.setRequired(true),
 					),
 			),

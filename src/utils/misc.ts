@@ -38,6 +38,7 @@ export const Settings = {
 	ServerStatusRegions: "server_status_regions",
 	ServerStatusToggle: "server_status_toggle",
 	SplitManagerRole: "split_manager_role",
+	SplitAuditLogChannel: "split_audit_log_channel",
 } as const;
 export type SettingsKey = (typeof Settings)[keyof typeof Settings];
 
@@ -159,4 +160,13 @@ export function getShardId(client: Client<true>): number {
 	}
 
 	return id;
+}
+
+export function arrayToCSV(data: Record<string, unknown>[]): string {
+	if (data.length === 0) return "";
+	let result = Object.keys(data[0]).join(",");
+	for (const obj of data) {
+		result += `\n${Object.values(obj).join(",")}`;
+	}
+	return result;
 }
