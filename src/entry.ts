@@ -21,7 +21,6 @@ startServerStatusInterval(manager);
 // TODO: add indexes to schema
 // TODO: do I need to log collection interacitons?
 // TODO: lookup cmd by name or id
-// TODO: welcome message to inviter DM
 // TODO: remove interactables upon timeout
 // TODO: feedback cmd?
 // TODO: guild attendance command
