@@ -1,16 +1,5 @@
 import assert from "node:assert";
-import {
-	ChannelType,
-	InteractionContextType,
-	SlashCommandBuilder,
-	type SlashCommandStringOption,
-} from "discord.js";
-import { setChannel } from "#src/features/server-status/channel.ts";
-import {
-	addRegion,
-	removeRegion,
-	viewRegions,
-} from "#src/features/server-status/region.ts";
+import { InteractionContextType, SlashCommandBuilder } from "discord.js";
 import {
 	disableNotifications,
 	enableNotifications,
@@ -21,30 +10,12 @@ import { config } from "#src/utils/config.ts";
 import i18n from "#src/utils/i18n.ts";
 import { logger } from "#src/utils/logger.ts";
 import {
-	type OptionFunc,
 	createGenericEmbed,
 	guildCache,
 	isAdminOrManager,
 } from "#src/utils/misc.ts";
 
 export const cooldown = 5;
-
-const serverRegionOption: OptionFunc<SlashCommandStringOption> = (option) =>
-	option
-		.setName(i18n.t("options.serverRegion.name", { ns: "common", lng: "en" }))
-		.setDescription(
-			i18n.t("options.serverRegion.desc", { ns: "common", lng: "en" }),
-		)
-		.setRequired(true)
-		.addChoices(
-			config.albionServerRegions.map((region) => ({
-				name: i18n.t(
-					`phrases.${region.toLowerCase() as "americas" | "asia" | "europe"}`,
-					{ ns: "common", lng: "en" },
-				),
-				value: region,
-			})),
-		);
 
 export const builder = new SlashCommandBuilder()
 	.setName(i18n.t("serverStatus.name", { ns: "commands", lng: "en" }))
@@ -82,38 +53,6 @@ export const builder = new SlashCommandBuilder()
 	.addSubcommand((subcommand) =>
 		subcommand
 			.setName(
-				i18n.t("serverStatus.subcommands.channel.name", {
-					ns: "commands",
-					lng: "en",
-				}),
-			)
-			.setDescription(
-				i18n.t("serverStatus.subcommands.channel.desc", {
-					ns: "commands",
-					lng: "en",
-				}),
-			)
-			.addChannelOption((option) =>
-				option
-					.setName(
-						i18n.t("serverStatus.subcommands.channel.options.channel.name", {
-							ns: "commands",
-							lng: "en",
-						}),
-					)
-					.setDescription(
-						i18n.t("serverStatus.subcommands.channel.options.channel.desc", {
-							ns: "commands",
-							lng: "en",
-						}),
-					)
-					.addChannelTypes(ChannelType.GuildText)
-					.setRequired(true),
-			),
-	)
-	.addSubcommand((subcommand) =>
-		subcommand
-			.setName(
 				i18n.t("serverStatus.subcommands.setup.name", {
 					ns: "commands",
 					lng: "en",
@@ -126,71 +65,8 @@ export const builder = new SlashCommandBuilder()
 				}),
 			),
 	)
-	.addSubcommandGroup((group) =>
-		group
-			.setName(
-				i18n.t("serverStatus.groups.regions.name", {
-					ns: "commands",
-					lng: "en",
-				}),
-			)
-			.setDescription(
-				i18n.t("serverStatus.groups.regions.desc", {
-					ns: "commands",
-					lng: "en",
-				}),
-			)
-			.addSubcommand((subcommand) =>
-				subcommand
-					.setName(
-						i18n.t("serverStatus.groups.regions.subcommands.add.name", {
-							ns: "commands",
-							lng: "en",
-						}),
-					)
-					.setDescription(
-						i18n.t("serverStatus.groups.regions.subcommands.add.desc", {
-							ns: "commands",
-							lng: "en",
-						}),
-					)
-					.addStringOption(serverRegionOption),
-			)
-			.addSubcommand((subcommand) =>
-				subcommand
-					.setName(
-						i18n.t("serverStatus.groups.regions.subcommands.remove.name", {
-							ns: "commands",
-							lng: "en",
-						}),
-					)
-					.setDescription(
-						i18n.t("serverStatus.groups.regions.subcommands.remove.desc", {
-							ns: "commands",
-							lng: "en",
-						}),
-					)
-					.addStringOption(serverRegionOption),
-			)
-			.addSubcommand((subcommand) =>
-				subcommand
-					.setName(
-						i18n.t("serverStatus.groups.regions.subcommands.view.name", {
-							ns: "commands",
-							lng: "en",
-						}),
-					)
-					.setDescription(
-						i18n.t("serverStatus.groups.regions.subcommands.view.desc", {
-							ns: "commands",
-							lng: "en",
-						}),
-					),
-			),
-	)
 	.setContexts(InteractionContextType.Guild);
 
-// TODO: if all regions removed, disable command and notify user
 // TODO: if target channel is deleted, changed to non-text based, etc..., disable command and notify user
 export const handler: CommandHandler = async ({ cid, i }) => {
 	// Retreive cached guild
@@ -219,7 +95,6 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 
 	// Extract subcommand options
 	const subcommand = i.options.getSubcommand();
-	const subcommandGroup = i.options.getSubcommandGroup();
 
 	// Handle setup wizard
 	if (subcommand === "setup") {
@@ -230,23 +105,6 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 	// Initial deferral to prevent timeouts
 	await i.deferReply({ ephemeral: true });
 
-	// Handle add, remove, view regions
-	if (subcommandGroup === "regions") {
-		switch (subcommand) {
-			case "add":
-				await addRegion(cid, i, cachedGuild);
-				break;
-			case "remove":
-				await removeRegion(cid, i, cachedGuild);
-				break;
-			case "view":
-				await viewRegions(cid, i, cachedGuild);
-				break;
-		}
-
-		return;
-	}
-
 	// Handle one of the other subcommands
 	switch (subcommand) {
 		case "enable":
@@ -254,9 +112,6 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 			break;
 		case "disable":
 			await disableNotifications(cid, i, cachedGuild);
-			break;
-		case "channel":
-			await setChannel(cid, i, cachedGuild);
 			break;
 	}
 };
