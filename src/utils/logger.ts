@@ -28,7 +28,7 @@ if (env.PINO_PRETTY === "true") {
 export const logger = pino(
 	{
 		level: config.logLevel,
-		timestamp: () => `,"timestamp":"${new Date(Date.now()).toISOString()}"`,
+		timestamp: () => `,"timestamp":"${new Date().toISOString()}"`,
 	},
 	targets.length > 0 && pino.transport({ targets: targets }),
 );
