@@ -1,6 +1,7 @@
 import { until } from "@open-draft/until";
 import {
 	ComponentType,
+	MessageFlags,
 	type SlashCommandBooleanOption,
 	SlashCommandBuilder,
 	type SlashCommandStringOption,
@@ -112,7 +113,7 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 	const { entityType, searchTerm, serverRegion, isPublic } = options;
 
 	// Initial deferral to prevent timeouts
-	await i.deferReply({ ephemeral: !isPublic });
+	await i.deferReply({ flags: !isPublic ? MessageFlags.Ephemeral : undefined });
 
 	// Gather search results based on options provided
 	const { error: searchError, data: searchResults } = await until(() =>

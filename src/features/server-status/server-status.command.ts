@@ -1,5 +1,9 @@
 import assert from "node:assert";
-import { InteractionContextType, SlashCommandBuilder } from "discord.js";
+import {
+	InteractionContextType,
+	MessageFlags,
+	SlashCommandBuilder,
+} from "discord.js";
 import {
 	disableNotifications,
 	enableNotifications,
@@ -78,7 +82,6 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 		logger.info({ cid }, "User lacks permission");
 		await i.reply({
 			content: "",
-			ephemeral: true,
 			embeds: [
 				createGenericEmbed({
 					title: " ",
@@ -89,6 +92,7 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 					color: config.colors.warning,
 				}),
 			],
+			flags: MessageFlags.Ephemeral,
 		});
 		return;
 	}
@@ -103,7 +107,7 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 	}
 
 	// Initial deferral to prevent timeouts
-	await i.deferReply({ ephemeral: true });
+	await i.deferReply({ flags: MessageFlags.Ephemeral });
 
 	// Handle one of the other subcommands
 	switch (subcommand) {

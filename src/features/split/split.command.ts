@@ -2,6 +2,7 @@ import assert from "node:assert";
 import {
 	ChannelType,
 	InteractionContextType,
+	MessageFlags,
 	SlashCommandBuilder,
 } from "discord.js";
 import { handleBalanceActions } from "#src/features/split/balance.ts";
@@ -160,7 +161,7 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 
 	// Handle users managing their balances
 	if (i.options.getSubcommandGroup() === "balance") {
-		await i.deferReply({ ephemeral: true });
+		await i.deferReply({ flags: MessageFlags.Ephemeral });
 		await handleBalanceActions(cid, i, cachedGuild);
 		return;
 	}
@@ -178,7 +179,6 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 		logger.info({ cid }, "User lacks permission to manage splits");
 		await i.reply({
 			content: "",
-			ephemeral: true,
 			embeds: [
 				createGenericEmbed({
 					title: " ",
@@ -186,6 +186,7 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 					color: config.colors.warning,
 				}),
 			],
+			flags: MessageFlags.Ephemeral,
 		});
 		return;
 	}
@@ -199,7 +200,7 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 
 	// Handle admin commands
 	if (i.options.getSubcommandGroup() === "admin") {
-		await i.deferReply({ ephemeral: true });
+		await i.deferReply({ flags: MessageFlags.Ephemeral });
 		await handleAdminActions(cid, i, cachedGuild);
 		return;
 	}

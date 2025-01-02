@@ -1,9 +1,10 @@
-import crypto from "node:crypto";
 import { until } from "@open-draft/until";
-import type {
-	AutocompleteInteraction,
-	ChatInputCommandInteraction,
+import {
+	type AutocompleteInteraction,
+	type ChatInputCommandInteraction,
+	MessageFlags,
 } from "discord.js";
+import { v7 } from "uuid";
 import { commands } from "#src/utils/command.ts";
 import {
 	getLastUsage,
@@ -64,7 +65,6 @@ async function chatInputCommandHandler(
 		);
 		await i.reply({
 			content: "",
-			ephemeral: true,
 			embeds: [
 				createErrorEmbed(
 					"N/A",
@@ -72,6 +72,7 @@ async function chatInputCommandHandler(
 					i.locale,
 				),
 			],
+			flags: MessageFlags.Ephemeral,
 		});
 		return;
 	}
@@ -85,7 +86,6 @@ async function chatInputCommandHandler(
 
 		await i.reply({
 			content: "",
-			ephemeral: true,
 			embeds: [
 				createGenericEmbed({
 					title: i18n.t("command.cooldown.title", {
@@ -100,6 +100,7 @@ async function chatInputCommandHandler(
 					}),
 				}),
 			],
+			flags: MessageFlags.Ephemeral,
 		});
 
 		return;
@@ -107,7 +108,7 @@ async function chatInputCommandHandler(
 
 	setCooldown(i.commandName, i.user.id);
 
-	const cid = crypto.randomUUID();
+	const cid = v7();
 	try {
 		logger.info(
 			{
@@ -118,6 +119,8 @@ async function chatInputCommandHandler(
 			},
 			"Command executed",
 		);
+
+		if (!i.inCachedGuild()) throw new Error("Guild not found in djs cache");
 
 		await command.handler({ cid, i });
 	} catch (e) {
@@ -140,14 +143,14 @@ async function chatInputCommandHandler(
 		if (i.replied || i.deferred) {
 			await i.followUp({
 				content: "",
-				ephemeral: true,
 				embeds: [createErrorEmbed(cid, errorMessage, i.locale)],
+				flags: MessageFlags.Ephemeral,
 			});
 		} else {
 			await i.reply({
 				content: "",
-				ephemeral: true,
 				embeds: [createErrorEmbed(cid, errorMessage, i.locale)],
+				flags: MessageFlags.Ephemeral,
 			});
 		}
 	}

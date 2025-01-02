@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from "discord.js";
+import { MessageFlags, SlashCommandBuilder } from "discord.js";
 import type { CommandHandler } from "#src/utils/command.ts";
 import { config } from "#src/utils/config.ts";
 import i18n from "#src/utils/i18n.ts";
@@ -13,7 +13,6 @@ export const builder = new SlashCommandBuilder()
 export const handler: CommandHandler = async ({ i }) => {
 	await i.reply({
 		content: "",
-		ephemeral: true,
 		embeds: [
 			createGenericEmbed({
 				title: " ",
@@ -25,5 +24,6 @@ export const handler: CommandHandler = async ({ i }) => {
 				color: config.colors.info,
 			}),
 		],
+		flags: MessageFlags.Ephemeral,
 	});
 };

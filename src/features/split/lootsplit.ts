@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+import { v7 } from "uuid";
 
 export type SplitDetails = {
 	id: string;
@@ -35,7 +35,7 @@ export class Lootsplit {
 	private readonly createdAt: Date;
 
 	constructor(creator: SplitMember, options: LootsplitOptions = {}) {
-		this.id = options.id ?? crypto.randomUUID();
+		this.id = options.id ?? v7();
 		this.totalAmount = options.initialAmount ?? 0;
 		this.repairCost = options.initialRepair ?? 0;
 		this.taxRate = options.initialTax ?? 10;

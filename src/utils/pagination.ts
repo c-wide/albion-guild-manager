@@ -9,6 +9,7 @@ import {
 	type InteractionCollector,
 	type Message,
 } from "discord.js";
+import { MessageFlags } from "discord.js";
 import { logger } from "#src/utils/logger.ts";
 import { getErrorMessage } from "#src/utils/misc.ts";
 
@@ -123,7 +124,7 @@ export class PaginationEmbed {
 		this.message = await i.reply({
 			embeds: [this.embeds[this.currentPage]],
 			components: [this.createButtons()],
-			ephemeral: this.options.ephemeral,
+			flags: this.options.ephemeral ? MessageFlags.Ephemeral : undefined,
 			fetchReply: true,
 		});
 
@@ -141,7 +142,7 @@ export class PaginationEmbed {
 		this.message = await i.followUp({
 			embeds: [this.embeds[this.currentPage]],
 			components: [this.createButtons()],
-			ephemeral: this.options.ephemeral,
+			flags: this.options.ephemeral ? MessageFlags.Ephemeral : undefined,
 			fetchReply: true,
 		});
 

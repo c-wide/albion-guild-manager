@@ -8,6 +8,7 @@ import {
 	ChannelType,
 	type ChatInputCommandInteraction,
 	ComponentType,
+	MessageFlags,
 	ModalBuilder,
 	PermissionsBitField,
 	StringSelectMenuBuilder,
@@ -69,7 +70,7 @@ async function showRegionSelector(
 			lng: i.locale,
 		}),
 		components: [row],
-		ephemeral: true,
+		flags: MessageFlags.Ephemeral,
 	});
 
 	// Catch incase the user doesnt respond in time
@@ -224,7 +225,7 @@ async function createChannel(
 		type: ChannelType.GuildText,
 		permissionOverwrites: [
 			{
-				id: i.guild.roles.everyone,
+				id: i.guild.roles.everyone.id,
 				allow: [
 					PermissionsBitField.Flags.ViewChannel,
 					PermissionsBitField.Flags.ReadMessageHistory,
@@ -233,8 +234,6 @@ async function createChannel(
 					PermissionsBitField.Flags.SendMessages,
 					PermissionsBitField.Flags.CreatePublicThreads,
 					PermissionsBitField.Flags.CreatePrivateThreads,
-					PermissionsBitField.Flags.EmbedLinks,
-					PermissionsBitField.Flags.AttachFiles,
 					PermissionsBitField.Flags.SendTTSMessages,
 					PermissionsBitField.Flags.SendVoiceMessages,
 					PermissionsBitField.Flags.SendPolls,
@@ -244,7 +243,7 @@ async function createChannel(
 				],
 			},
 			{
-				id: i.guild.members.me,
+				id: i.guild.members.me.id,
 				allow: [
 					PermissionsBitField.Flags.ViewChannel,
 					PermissionsBitField.Flags.SendMessages,

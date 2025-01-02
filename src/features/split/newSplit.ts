@@ -9,6 +9,7 @@ import {
 	EmbedBuilder,
 	type InteractionCollector,
 	type Message,
+	MessageFlags,
 	type ModalActionRowComponentBuilder,
 	ModalBuilder,
 	PermissionsBitField,
@@ -94,7 +95,7 @@ async function handleSetTax(
 		);
 		const res = await data.reply({
 			content: "Invalid tax rate provided, must be a number between 0 and 100",
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral,
 		});
 		setTimeout(async () => await res.delete(), 10_000);
 		return;
@@ -162,7 +163,7 @@ async function handleSetTotalAmount(
 		);
 		const res = await data.reply({
 			content: "Invalid amount provided",
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral,
 		});
 		setTimeout(async () => await res.delete(), 10_000);
 		return;
@@ -233,7 +234,7 @@ async function handleSetRepairCost(
 		);
 		const res = await data.reply({
 			content: "Invalid repair cost provided",
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral,
 		});
 		setTimeout(async () => await res.delete(), 10_000);
 		return;
@@ -258,7 +259,7 @@ async function handleAddMembers(
 	memberList: PaginationEmbed,
 ): Promise<void> {
 	// Defer the reply to the button interaction
-	await i.deferReply({ ephemeral: true });
+	await i.deferReply({ flags: MessageFlags.Ephemeral });
 
 	// Create a user select menu for adding members
 	const selectRow = new ActionRowBuilder<UserSelectMenuBuilder>().addComponents(
@@ -273,7 +274,7 @@ async function handleAddMembers(
 	const selectMsg = await i.followUp({
 		content: "Select the members you want to add to the split",
 		components: [selectRow],
-		ephemeral: true,
+		flags: MessageFlags.Ephemeral,
 		fetchReply: true,
 	});
 
@@ -383,7 +384,7 @@ async function handleRemoveMembers(
 	memberList: PaginationEmbed,
 ): Promise<void> {
 	// Defer the reply to the button interaction
-	await i.deferReply({ ephemeral: true });
+	await i.deferReply({ flags: MessageFlags.Ephemeral });
 
 	// Create a user select menu for removing members
 	const selectRow = new ActionRowBuilder<UserSelectMenuBuilder>().addComponents(
@@ -398,7 +399,7 @@ async function handleRemoveMembers(
 	const selectMsg = await i.followUp({
 		content: "Select the members you want to remove from the split",
 		components: [selectRow],
-		ephemeral: true,
+		flags: MessageFlags.Ephemeral,
 		fetchReply: true,
 	});
 
@@ -500,7 +501,7 @@ async function handleAddFromVoice(
 	memberList: PaginationEmbed,
 ): Promise<void> {
 	// Defer the reply to the button interaction
-	await i.deferReply({ ephemeral: true });
+	await i.deferReply({ flags: MessageFlags.Ephemeral });
 
 	// Get the voice channel the user is in
 	const voiceChannel = i.member.voice.channel;
@@ -632,13 +633,13 @@ async function handleEndSplit(
 	collector: InteractionCollector<ButtonInteraction<"cached">>,
 ): Promise<void> {
 	// Defer the reply to the button interaction
-	await i.deferReply({ ephemeral: true });
+	await i.deferReply({ flags: MessageFlags.Ephemeral });
 
 	// Check if the total amount is set
 	if (split.getTotalAmount() < 1) {
 		await i.followUp({
 			content: "You must set a total amount before ending the split",
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral,
 		});
 		setTimeout(async () => await i.deleteReply(), 10_000);
 		return;
@@ -648,7 +649,7 @@ async function handleEndSplit(
 	if (split.getMemberCount() < 1) {
 		await i.followUp({
 			content: "You must have at least one member in the split to end it",
-			ephemeral: true,
+			flags: MessageFlags.Ephemeral,
 		});
 		setTimeout(async () => await i.deleteReply(), 10_000);
 		return;
