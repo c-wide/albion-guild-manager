@@ -32,8 +32,7 @@ export function getErrorMessage(error: unknown) {
 }
 
 export const Settings = {
-	ManagerRoles: "manager_roles",
-	ManagerUsers: "manager_users",
+	ManagerRole: "manager_role",
 	ServerStatusChannel: "server_status_channel",
 	ServerStatusRegions: "server_status_regions",
 	ServerStatusToggle: "server_status_toggle",
@@ -72,21 +71,15 @@ export function isAdminOrManager(
 	// Check if the member has ManageGuild permission
 	if (member.permissions?.has(PermissionFlagsBits.ManageGuild)) return true;
 
-	// Extract role and user manager settings
-	const managerRoles = (cache.settings.get(Settings.ManagerRoles) ??
-		[]) as string[];
-	const managerUsers = (cache.settings.get(Settings.ManagerUsers) ??
-		[]) as string[];
+	// Extract manager role from guild settings
+	const managerRole = cache.settings.get(Settings.ManagerRole) as
+		| string
+		| undefined;
 
-	// Check if member/user (?) is a manager
-	if (managerUsers.includes(member.user.id)) return true;
+	// Check if member has the manager role
+	if (managerRole && member.roles.cache.has(managerRole)) return true;
 
-	// Check if member/user (?) has a manager role
-	const memberRoles = member.roles.cache;
-	if (managerRoles.some((roleId) => memberRoles.has(roleId))) {
-		return true;
-	}
-
+	// If none of the above conditions are met, return false
 	return false;
 }
 

@@ -6,7 +6,6 @@ import {
 	ButtonStyle,
 	type ChatInputCommandInteraction,
 	ComponentType,
-	PermissionFlagsBits,
 	PermissionsBitField,
 	type TextChannel,
 } from "discord.js";
@@ -348,22 +347,6 @@ async function handleSetManagerRole(
 	i: ChatInputCommandInteraction<"cached">,
 	cache: GuildDetails,
 ): Promise<void> {
-	// Only users with ManageGuild permission can set split manager role
-	if (i.memberPermissions.has(PermissionFlagsBits.ManageGuild) === false) {
-		logger.info({ cid }, "User lacks permission to set manager role");
-		await i.followUp({
-			content: "",
-			embeds: [
-				createGenericEmbed({
-					title: "Set Manager Role",
-					description: "You lack permission to set the split manager role",
-					color: config.colors.warning,
-				}),
-			],
-		});
-		return;
-	}
-
 	// Extract options
 	const role = i.options.getRole("role", true);
 
@@ -472,22 +455,6 @@ async function handleSetAuditLogChannel(
 	i: ChatInputCommandInteraction<"cached">,
 	cache: GuildDetails,
 ): Promise<void> {
-	// Only users with ManageGuild permission can set audit log channel
-	if (i.memberPermissions.has(PermissionFlagsBits.ManageGuild) === false) {
-		logger.info({ cid }, "User lacks permission to set audit log channel");
-		await i.followUp({
-			content: "",
-			embeds: [
-				createGenericEmbed({
-					title: "Setup Audit Log",
-					description: "You lack permission to set up an audit log channel",
-					color: config.colors.warning,
-				}),
-			],
-		});
-		return;
-	}
-
 	// Check if bot is still in the guild
 	if (i.guild.members.me === null) throw new Error("Bot is not in guild");
 

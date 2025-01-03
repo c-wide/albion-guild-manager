@@ -1,78 +1,14 @@
 export const managers = {
 	name: "managers",
-	desc: "Manage bot administrator roles and users",
-	groups: {
-		add: {
-			name: "add",
-			desc: "Grant bot management permissions",
-			subcommands: {
-				role: {
-					name: "role",
-					desc: "Grant bot management permissions to a role",
-					options: {
-						role: {
-							name: "role",
-							desc: "The role to be granted bot management permissions",
-						},
-					},
-				},
-				user: {
-					name: "user",
-					desc: "Grant bot management permissions to a user",
-					options: {
-						user: {
-							name: "user",
-							desc: "The user to be granted bot management permissions",
-						},
-					},
-				},
-			},
-		},
-		remove: {
-			name: "remove",
-			desc: "Revoke bot management permissions",
-			subcommands: {
-				role: {
-					name: "role",
-					desc: "Revoke bot management permissions from a role",
-					options: {
-						role: {
-							name: "role",
-							desc: "The role to have its bot management permissions revoked",
-						},
-					},
-				},
-				user: {
-					name: "user",
-					desc: "Revoke bot management permissions from a user",
-					options: {
-						user: {
-							name: "user",
-							desc: "The user to have their bot management permissions revoked",
-						},
-					},
-				},
-			},
-		},
-	},
+	desc: "Manage bot administrators",
 	subcommands: {
-		view: {
-			name: "view",
-			desc: "Display current bot managers",
-		},
-	},
-	embeds: {
-		common: {
-			na: "N/A",
-		},
-		botManagers: {
-			title: "Current Bot Managers",
-			fields: {
-				roles: {
-					name: "Manager Roles",
-				},
-				users: {
-					name: "Manager Users",
+		setRole: {
+			name: "set_role",
+			desc: "Grant bot management permissions to a role",
+			options: {
+				role: {
+					name: "role",
+					desc: "The role to grant bot management permissions to",
 				},
 			},
 		},
@@ -80,20 +16,9 @@ export const managers = {
 	responses: {
 		noPermission:
 			"You don't have the required permissions to manage bot administrators",
-		addRole:
-			"The role <@&{{target}}> has been granted bot management permissions",
-		addUser:
-			"The user <@{{target}}> has been granted bot management permissions",
-		removeRole:
-			"Bot management permissions have been revoked from the role <@&{{target}}>",
-		removeUser:
-			"Bot management permissions have been revoked from the user <@{{target}}>",
-		roleAlreadyManager: "<@&{{target}}> already has bot management permissions",
-		userAlreadyManager: "<@{{target}}> already has bot management permissions",
-		roleNotManager:
-			"<@&{{target}}> doesn't currently have bot management permissions",
-		userNotManager:
-			"<@{{target}}> doesn't currently have bot management permissions",
-		noManagers: "There are currently no bot managers configured",
+		confirmSetRole:
+			"Are you sure you want to grant bot management permissions to the role <@&{{roleId}}>",
+		setRole:
+			"The role <@&{{roleId}}> has been granted bot management permissions",
 	},
 } as const;
