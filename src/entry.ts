@@ -16,9 +16,7 @@ await manager.spawn();
 
 startServerStatusInterval(manager);
 
-// FIXME: paginate manager listing
 // TODO: am I using logger.info vs logger.error correctly?
-// TODO: add indexes to schema
 // TODO: do I need to log collection interacitons?
 // TODO: lookup cmd by name or id
 // TODO: remove interactables upon timeout
