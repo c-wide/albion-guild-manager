@@ -30,7 +30,7 @@ export class Lootsplit {
 	private totalAmount: number;
 	private repairCost: number;
 	private taxRate: number;
-	private readonly memberList: Set<SplitMember>;
+	private readonly memberList: Map<string, SplitMember>;
 	private readonly createdBy: SplitMember;
 	private readonly createdAt: Date;
 
@@ -39,7 +39,9 @@ export class Lootsplit {
 		this.totalAmount = options.initialAmount ?? 0;
 		this.repairCost = options.initialRepair ?? 0;
 		this.taxRate = options.initialTax ?? 10;
-		this.memberList = new Set(options.initialMembers ?? []);
+		this.memberList = new Map<string, SplitMember>(
+			options.initialMembers?.map((member) => [member.id, member]),
+		);
 		this.createdBy = creator;
 		this.createdAt = new Date();
 	}
@@ -61,11 +63,11 @@ export class Lootsplit {
 	}
 
 	getMemberIds(): string[] {
-		return Array.from(this.memberList).map((member) => member.id);
+		return Array.from(this.memberList.keys());
 	}
 
 	getMemberList(): SplitMember[] {
-		return Array.from(this.memberList);
+		return Array.from(this.memberList.values());
 	}
 
 	getMemberCount(): number {
@@ -102,11 +104,11 @@ export class Lootsplit {
 	}
 
 	addMembers(members: SplitMember[]): void {
-		members.forEach((member) => this.memberList.add(member));
+		members.forEach((member) => this.memberList.set(member.id, member));
 	}
 
 	removeMembers(members: SplitMember[]): void {
-		members.forEach((member) => this.memberList.delete(member));
+		members.forEach((member) => this.memberList.delete(member.id));
 	}
 
 	getSplitDetails(): SplitDetails {
