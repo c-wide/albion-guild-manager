@@ -122,7 +122,7 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 
 	// If there was an error while searching, log & send generic error response
 	if (searchError) {
-		logger.info(
+		logger.warn(
 			{ cid, ...options, error: getErrorMessage(searchError) },
 			"Error while performing search",
 		);
@@ -158,6 +158,7 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 						ns: "commands",
 						lng: i.locale,
 					}),
+					color: config.colors.info,
 				}),
 			],
 		});
@@ -179,7 +180,7 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 
 	// If there was an error here, it's usually because the user didn't make a selection
 	if (messageInteractionError) {
-		logger.info({ cid, ...options }, "User failed to respond");
+		logger.warn({ cid, ...options }, "User failed to respond");
 		await i.deleteReply();
 		return;
 	}
@@ -202,7 +203,7 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 
 	// If there was an error while searching for details, log & send generic error response
 	if (entityDetailsError) {
-		logger.info(
+		logger.warn(
 			{ cid, ...options, error: getErrorMessage(entityDetailsError) },
 			"Error while fetching entity details",
 		);
