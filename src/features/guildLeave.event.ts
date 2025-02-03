@@ -4,7 +4,7 @@ import { db } from "#src/database/db.ts";
 import { serverSettings, servers } from "#src/database/schema.ts";
 import type { EventHandler, EventName } from "#src/utils/event.ts";
 import { logger } from "#src/utils/logger.ts";
-import { getServerId, guildCache } from "#src/utils/misc.ts";
+import { getErrorMessage, getServerId, guildCache } from "#src/utils/misc.ts";
 
 export const name: EventName = "guildDelete";
 export const once = false;
@@ -22,7 +22,7 @@ export const handler: EventHandler<typeof name> = async (g) => {
 	const { error } = await until(() => softDeleteGuild(id));
 	if (error) {
 		logger.error(
-			{ serverId: id, guildId: g.id, error },
+			{ serverId: id, guildId: g.id, error: getErrorMessage(error) },
 			"Failed to update database on guild leave",
 		);
 		return;

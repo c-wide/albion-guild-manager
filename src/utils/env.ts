@@ -8,20 +8,18 @@ const envSchema = z
 		DISCORD_GUILD_ID: z.string().optional(),
 		PINO_PRETTY: z.enum(["true", "false"]),
 		AXIOM_TOKEN: z.string().optional(),
-		AXIOM_ORG_ID: z.string().optional(),
 		AXIOM_DATASET: z.string().optional(),
 	})
 	.refine(
 		(data) => {
-			if (data.AXIOM_TOKEN) {
-				return !!data.AXIOM_ORG_ID && !!data.AXIOM_DATASET;
-			}
-			return true;
+			return (
+				(data.AXIOM_TOKEN === undefined && data.AXIOM_DATASET === undefined) ||
+				(data.AXIOM_TOKEN !== undefined && data.AXIOM_DATASET !== undefined)
+			);
 		},
 		{
-			message:
-				"If AXIOM_TOKEN is provided, AXIOM_ORG_ID and AXIOM_DATASET must also be provided",
-			path: ["AXIOM_TOKEN"],
+			message: "AXIOM_TOKEN and AXIOM_DATASET must be provided together",
+			path: ["AXIOM_TOKEN", "AXIOM_DATASET"],
 		},
 	);
 

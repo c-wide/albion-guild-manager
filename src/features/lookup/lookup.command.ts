@@ -180,7 +180,7 @@ export const handler: CommandHandler = async ({ cid, i }) => {
 
 	// If there was an error here, it's usually because the user didn't make a selection
 	if (messageInteractionError) {
-		logger.warn({ cid, ...options }, "User failed to respond");
+		logger.info({ cid, ...options }, "User failed to respond");
 		await i.deleteReply();
 		return;
 	}

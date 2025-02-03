@@ -10,7 +10,6 @@ if (env.AXIOM_TOKEN) {
 		target: "@axiomhq/pino",
 		options: {
 			token: env.AXIOM_TOKEN,
-			orgId: env.AXIOM_ORG_ID,
 			dataset: env.AXIOM_DATASET,
 		},
 	});

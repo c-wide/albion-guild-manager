@@ -4,7 +4,7 @@ import { db } from "#src/database/db.ts";
 import { serverSettings, servers } from "#src/database/schema.ts";
 import type { EventHandler, EventName } from "#src/utils/event.ts";
 import { logger } from "#src/utils/logger.ts";
-import { guildCache } from "#src/utils/misc.ts";
+import { getErrorMessage, guildCache } from "#src/utils/misc.ts";
 
 export const name: EventName = "guildCreate";
 export const once = false;
@@ -51,7 +51,7 @@ export const handler: EventHandler<typeof name> = async (g) => {
 
 	if (error) {
 		logger.error(
-			{ guildId: g.id, error },
+			{ guildId: g.id, error: getErrorMessage(error) },
 			"Failed to insert new server into database",
 		);
 		return;

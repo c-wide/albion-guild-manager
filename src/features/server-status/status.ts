@@ -3,7 +3,7 @@ import { until } from "@open-draft/until";
 import { PermissionsBitField, type ShardingManager } from "discord.js";
 import { type AlbionServerRegion, config } from "#src/utils/config.ts";
 import { logger } from "#src/utils/logger.ts";
-import { sdks } from "#src/utils/misc.ts";
+import { getErrorMessage, sdks } from "#src/utils/misc.ts";
 
 // TODO: investigate issue causing first status check to fail for Europe & Asia
 
@@ -190,7 +190,7 @@ export function startServerStatusInterval(manager: ShardingManager): void {
 
 		if (error) {
 			logger.error(
-				{ durationMs: duration.toFixed(0), error },
+				{ durationMs: duration.toFixed(0), error: getErrorMessage(error) },
 				"Error during server status interval",
 			);
 			return;

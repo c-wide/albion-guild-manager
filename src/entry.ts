@@ -16,12 +16,9 @@ await manager.spawn();
 
 startServerStatusInterval(manager);
 
-// TODO: am I using logger.info vs logger.error correctly?
-// TODO: do I need to log collection interacitons?
-// TODO: lookup cmd by name or id
+// TODO: how does split work with a shard / bot restart?
 // TODO: remove interactables upon timeout
 // TODO: feedback cmd?
 // TODO: guild attendance command
-// TODO: request coalescing to prevent external API overusage
 // TODO: add name localizaitons to command builders
 // TODO: unhandled rejection and uncaught exceptions

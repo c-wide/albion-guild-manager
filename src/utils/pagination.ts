@@ -106,7 +106,7 @@ export class PaginationEmbed {
 					components: [this.createButtons()],
 				});
 			} catch (error) {
-				logger.error(
+				logger.warn(
 					{
 						error: getErrorMessage(error),
 					},

@@ -859,7 +859,7 @@ export async function createNewSplit(
 				}
 			}
 		} catch (error) {
-			logger.error(
+			logger.warn(
 				{
 					splitId: split.getId(),
 					action: ci.customId,
