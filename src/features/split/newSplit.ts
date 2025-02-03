@@ -72,7 +72,7 @@ async function handleSetTax(
 	const { error, data } = await until(() =>
 		i.awaitModalSubmit({
 			filter: (mi) => mi.customId === `taxRate-${i.id}`,
-			time: 2 * 60_000,
+			time: 60_000,
 		}),
 	);
 
@@ -143,7 +143,7 @@ async function handleSetTotalAmount(
 	const { error, data } = await until(() =>
 		i.awaitModalSubmit({
 			filter: (mi) => mi.customId === `totalAmount-${i.id}`,
-			time: 2 * 60_000,
+			time: 60_000,
 		}),
 	);
 
@@ -214,7 +214,7 @@ async function handleSetRepairCost(
 	const { error, data } = await until(() =>
 		i.awaitModalSubmit({
 			filter: (mi) => mi.customId === `repairCost-${i.id}`,
-			time: 2 * 60_000,
+			time: 60_000,
 		}),
 	);
 
@@ -282,7 +282,7 @@ async function handleAddMembers(
 	const { error: selectErr, data: selectData } = await until(() =>
 		selectMsg.awaitMessageComponent({
 			filter: (mi) => mi.user.id === i.user.id,
-			time: 5 * 60_000,
+			time: 3 * 60_000,
 			componentType: ComponentType.UserSelect,
 		}),
 	);
@@ -407,7 +407,7 @@ async function handleRemoveMembers(
 	const { error: selectErr, data: selectData } = await until(() =>
 		selectMsg.awaitMessageComponent({
 			filter: (mi) => mi.user.id === i.user.id,
-			time: 5 * 60_000,
+			time: 3 * 60_000,
 			componentType: ComponentType.UserSelect,
 		}),
 	);

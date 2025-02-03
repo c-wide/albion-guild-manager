@@ -120,7 +120,7 @@ async function handleTransferBalance(
 	const { error: confirmErr, data: confirmData } = await until(() =>
 		confirmMsg.awaitMessageComponent({
 			filter: (mi) => mi.user.id === i.user.id,
-			time: 3 * 60_000,
+			time: 60_000,
 			componentType: ComponentType.Button,
 		}),
 	);

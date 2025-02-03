@@ -60,7 +60,7 @@ async function handlePayout(
 	const { error: confirmErr, data: confirmData } = await until(() =>
 		confirmMsg.awaitMessageComponent({
 			filter: (mi) => mi.user.id === i.user.id,
-			time: 3 * 60_000,
+			time: 60_000,
 			componentType: ComponentType.Button,
 		}),
 	);
@@ -259,7 +259,7 @@ async function handleSetBalance(
 	const { error: confirmErr, data: confirmData } = await until(() =>
 		confirmMsg.awaitMessageComponent({
 			filter: (mi) => mi.user.id === i.user.id,
-			time: 3 * 60_000,
+			time: 60_000,
 			componentType: ComponentType.Button,
 		}),
 	);
@@ -399,7 +399,7 @@ async function handleSetManagerRole(
 	const { error: confirmErr, data: confirmData } = await until(() =>
 		confirmMsg.awaitMessageComponent({
 			filter: (mi) => mi.user.id === i.user.id,
-			time: 3 * 60_000,
+			time: 60_000,
 			componentType: ComponentType.Button,
 		}),
 	);
@@ -514,7 +514,7 @@ async function handleSetAuditLogChannel(
 	const { error: confirmErr, data: confirmData } = await until(() =>
 		confirmMsg.awaitMessageComponent({
 			filter: (mi) => mi.user.id === i.user.id,
-			time: 3 * 60_000,
+			time: 60_000,
 			componentType: ComponentType.Button,
 		}),
 	);
