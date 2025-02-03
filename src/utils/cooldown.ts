@@ -18,7 +18,7 @@ export function isOnCooldown(commandName: string, userId: string): boolean {
 
 	if (!lastUsage) return false;
 
-	return now < lastUsage + command.cooldown * 1000;
+	return now < lastUsage + command.cooldown * 1_000;
 }
 
 export function setCooldown(commandName: string, userId: string): void {

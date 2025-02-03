@@ -33,7 +33,7 @@ export class PaginationEmbed {
 		this.authorizedUsers = new Set();
 		this.collector = null;
 		this.options = {
-			collectorTimeout: options.collectorTimeout ?? 5 * 60000,
+			collectorTimeout: options.collectorTimeout ?? 5 * 60_000,
 			ephemeral: options.ephemeral ?? false,
 		};
 	}
