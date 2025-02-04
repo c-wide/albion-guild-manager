@@ -43,7 +43,7 @@ function schedulePresenceRefresh(c: Client<true>): void {
 
 	const now = new Date();
 	const msUntilNextMinute =
-		(60 - now.getUTCSeconds()) * 1_000 - now.getUTCMilliseconds();
+		(60 - now.getUTCSeconds()) * 1_000 - now.getUTCMilliseconds() + 250;
 
 	setTimeout(() => {
 		schedulePresenceRefresh(c);
