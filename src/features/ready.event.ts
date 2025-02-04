@@ -22,7 +22,7 @@ export const once = true;
 
 export const handler: EventHandler<typeof name> = async (c) => {
 	// Start bot presence interval
-	startPresenceInterval(c);
+	schedulePresenceRefresh(c);
 
 	// Fetch guild details from DB for all guilds this shard will manage
 	const storedGuilds = await getStoredGuilds(c.guilds.cache.map((g) => g.id));
@@ -38,21 +38,15 @@ export const handler: EventHandler<typeof name> = async (c) => {
 	logger.info({ shardId: getShardId(c) }, "Shard Ready");
 };
 
-function startPresenceInterval(c: Client<true>): void {
-	// Set initial presence
+function schedulePresenceRefresh(c: Client<true>): void {
 	updatePresence(c);
 
-	// Calculate seconds until next minute, converting to milliseconds for setTimeout
 	const now = new Date();
 	const msUntilNextMinute =
 		(60 - now.getUTCSeconds()) * 1_000 - now.getUTCMilliseconds();
 
-	// First timeout to sync to exact minute
 	setTimeout(() => {
-		updatePresence(c);
-
-		// Then start the regular interval
-		setInterval(() => updatePresence(c), 60_000);
+		schedulePresenceRefresh(c);
 	}, msUntilNextMinute);
 }
 
