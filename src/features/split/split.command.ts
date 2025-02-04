@@ -5,6 +5,7 @@ import {
 	MessageFlags,
 	SlashCommandBuilder,
 } from "discord.js";
+import { handleAdminActions } from "#src/features/split/admin.ts";
 import { handleBalanceActions } from "#src/features/split/balance.ts";
 import { createNewSplit } from "#src/features/split/newSplit.ts";
 import type { CommandHandler } from "#src/utils/command.ts";
@@ -16,7 +17,11 @@ import {
 	guildCache,
 	isAdminOrManager,
 } from "#src/utils/misc.ts";
-import { handleAdminActions } from "./admin";
+
+// TODO: handle shard/bot restarts
+// TODO: move log channel check into its own function
+// TODO: log manager / audit log channel changes
+// TODO: i18n
 
 export const cooldown = 5;
 

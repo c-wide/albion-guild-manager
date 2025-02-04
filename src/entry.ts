@@ -16,7 +16,6 @@ await manager.spawn();
 
 startServerStatusInterval(manager);
 
-// TODO: how does split work with a shard / bot restart?
 // TODO: remove interactables upon timeout
 // TODO: feedback cmd?
 // TODO: guild attendance command

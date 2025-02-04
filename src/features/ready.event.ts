@@ -43,11 +43,14 @@ function startPresenceInterval(c: Client<true>): void {
 	updatePresence(c);
 
 	// Calculate seconds until next minute, converting to milliseconds for setTimeout
-	const msUntilNextMinute = (60 - new Date().getUTCSeconds()) * 1_000;
+	const now = new Date();
+	const msUntilNextMinute =
+		(60 - now.getUTCSeconds()) * 1_000 - now.getUTCMilliseconds();
 
 	// First timeout to sync to exact minute
 	setTimeout(() => {
 		updatePresence(c);
+
 		// Then start the regular interval
 		setInterval(() => updatePresence(c), 60_000);
 	}, msUntilNextMinute);
