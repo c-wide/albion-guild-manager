@@ -20,6 +20,7 @@ import {
 	Settings,
 	arrayToCSV,
 	createGenericEmbed,
+	isAdminOrManager,
 } from "#src/utils/misc.ts";
 
 async function handlePayout(
@@ -347,6 +348,23 @@ async function handleSetManagerRole(
 	i: ChatInputCommandInteraction<"cached">,
 	cache: GuildDetails,
 ): Promise<void> {
+	// Check if user has permission to change the manager role
+	if (!isAdminOrManager(i.member, cache)) {
+		logger.info({ cid }, "User lacks permission to change manager role");
+		await i.followUp({
+			content: "",
+			embeds: [
+				createGenericEmbed({
+					title: " ",
+					description:
+						"You do not have permission to change the split manager role",
+					color: config.colors.warning,
+				}),
+			],
+		});
+		return;
+	}
+
 	// Extract options
 	const role = i.options.getRole("role", true);
 
@@ -455,7 +473,24 @@ async function handleSetAuditLogChannel(
 	i: ChatInputCommandInteraction<"cached">,
 	cache: GuildDetails,
 ): Promise<void> {
-	// Check if bot is still in the guild
+	// Check if user has permission to change the manager role
+	if (!isAdminOrManager(i.member, cache)) {
+		logger.info({ cid }, "User lacks permission to change audit log channel");
+		await i.followUp({
+			content: "",
+			embeds: [
+				createGenericEmbed({
+					title: " ",
+					description:
+						"You do not have permission to change the audit log channel",
+					color: config.colors.warning,
+				}),
+			],
+		});
+		return;
+	}
+
+	// Check if bot is still in the guild I guess...
 	if (i.guild.members.me === null) throw new Error("Bot is not in guild");
 
 	// Extract options
