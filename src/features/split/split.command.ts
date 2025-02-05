@@ -155,6 +155,9 @@ export const builder = new SlashCommandBuilder()
 							])
 							.setRequired(true),
 					),
+			)
+			.addSubcommand((subcommand) =>
+				subcommand.setName("reset").setDescription("Reset all balances"),
 			),
 	)
 	.setContexts(InteractionContextType.Guild);

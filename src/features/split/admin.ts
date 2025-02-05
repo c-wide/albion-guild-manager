@@ -627,6 +627,111 @@ async function handleExport(
 	});
 }
 
+export async function handleReset(
+	cid: string,
+	i: ChatInputCommandInteraction<"cached">,
+	cache: GuildDetails,
+): Promise<void> {
+	// Create buttons for confirming or canceling the action
+	const confirmRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+		new ButtonBuilder()
+			.setCustomId("confirm")
+			.setLabel("Confirm")
+			.setStyle(ButtonStyle.Primary),
+		new ButtonBuilder()
+			.setCustomId("cancel")
+			.setLabel("Cancel")
+			.setStyle(ButtonStyle.Danger),
+	);
+
+	// Send a message with the confirmation embed and buttons
+	const confirmMsg = await i.followUp({
+		content: "",
+		embeds: [
+			createGenericEmbed({
+				title: "Reset Balances",
+				description: "Are you sure you want to reset all balances?",
+				color: config.colors.warning,
+			}),
+		],
+		components: [confirmRow],
+	});
+
+	// Wait for the user to confirm or cancel
+	const { error: confirmErr, data: confirmData } = await until(() =>
+		confirmMsg.awaitMessageComponent({
+			filter: (mi) => mi.user.id === i.user.id,
+			time: 60_000,
+			componentType: ComponentType.Button,
+		}),
+	);
+
+	// If there was an error or cancelation, delete the confirmation message and return early
+	if (confirmErr || confirmData.customId === "cancel") {
+		logger.info({ cid }, "Reset balances canceled");
+		await i.deleteReply();
+		return;
+	}
+
+	// Defer confirmation to avoid timeout
+	await confirmData.deferUpdate();
+
+	// Reset balances
+	await db
+		.delete(lootSplitBalances)
+		.where(eq(lootSplitBalances.serverId, cache.id));
+
+	// Log things
+	logger.info({ cid }, "Balances reset");
+
+	// Notify user of reset
+	await confirmData.editReply({
+		content: "",
+		embeds: [
+			createGenericEmbed({
+				title: "Reset Balances",
+				description: "All balances have been reset",
+				color: config.colors.success,
+			}),
+		],
+		components: [],
+	});
+
+	// Check if guild has a split audit log channel
+	const auditLogChannelId = cache.settings.get(Settings.SplitAuditLogChannel) as
+		| string
+		| undefined;
+	if (!auditLogChannelId) return;
+
+	// Check if the channel still exists
+	const auditLogChannel = i.guild.channels.cache.get(auditLogChannelId);
+	if (!auditLogChannel) return;
+
+	// Check if bot is still in the guild
+	if (i.guild.members.me === null) return;
+
+	// Check if bot has permissions to send messages in the channel
+	const canSendMessages = auditLogChannel
+		.permissionsFor(i.guild.members.me)
+		.has([
+			PermissionsBitField.Flags.ViewChannel,
+			PermissionsBitField.Flags.SendMessages,
+		]);
+	if (!canSendMessages) return;
+
+	// Send the details to the audit log channel
+	await (auditLogChannel as TextChannel).send({
+		content: "",
+		embeds: [
+			createGenericEmbed({
+				title: "Reset Balances",
+				description: `<@${i.user.id}> reset all balances`,
+				color: config.colors.info,
+			}),
+		],
+	});
+}
+
 export async function handleAdminActions(
 	cid: string,
 	i: ChatInputCommandInteraction<"cached">,
@@ -655,6 +760,10 @@ export async function handleAdminActions(
 		}
 		case "export": {
 			await handleExport(cid, i, cache);
+			break;
+		}
+		case "reset": {
+			await handleReset(cid, i, cache);
 			break;
 		}
 	}

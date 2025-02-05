@@ -16,6 +16,7 @@ await manager.spawn();
 
 startServerStatusInterval(manager);
 
+// TODO: centralize confirm/cancel action
 // TODO: remove interactables upon timeout
 // TODO: feedback cmd?
 // TODO: guild attendance command
