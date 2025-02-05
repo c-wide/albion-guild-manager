@@ -160,7 +160,7 @@ async function handlePayout(
 			embeds: [
 				createGenericEmbed({
 					title: "Payout",
-					description: "User does not have enough balance",
+					description: `<@${user.id}> does not have enough balance to complete this transaction`,
 					color: config.colors.warning,
 				}),
 			],
