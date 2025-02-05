@@ -122,7 +122,7 @@ export const builder = new SlashCommandBuilder()
 			.addSubcommand((subcommand) =>
 				subcommand
 					.setName("set_audit_log_channel")
-					.setDescription("Set the channel to log balance changes")
+					.setDescription("Set the channel to log split command actions to")
 					.addChannelOption((option) =>
 						option
 							.setName("channel")

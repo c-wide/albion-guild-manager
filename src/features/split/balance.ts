@@ -5,19 +5,14 @@ import {
 	ButtonStyle,
 	type ChatInputCommandInteraction,
 	ComponentType,
-	PermissionsBitField,
-	type TextChannel,
 } from "discord.js";
 import { and, eq } from "drizzle-orm";
 import { db } from "#src/database/db.ts";
 import { lootSplitBalances } from "#src/database/schema.ts";
+import { sendAuditLog } from "#src/features/split/admin.ts";
 import { config } from "#src/utils/config.ts";
 import { logger } from "#src/utils/logger.ts";
-import {
-	type GuildDetails,
-	Settings,
-	createGenericEmbed,
-} from "#src/utils/misc.ts";
+import { type GuildDetails, createGenericEmbed } from "#src/utils/misc.ts";
 
 async function handleViewBalance(
 	cid: string,
@@ -138,7 +133,7 @@ async function handleTransferBalance(
 	// Sort ids to prevent deadlocks
 	const [firstId, secondId] = [i.user.id, tgtUser.id].sort();
 
-	await db.transaction(async (tx) => {
+	const success = await db.transaction(async (tx) => {
 		// Fetch and lock records
 		const [firstRecord] = await tx
 			.select({
@@ -174,19 +169,7 @@ async function handleTransferBalance(
 
 		// Check if source has enough balance
 		if (!srcRecord || srcRecord.balance < xferAmt) {
-			logger.info({ cid }, "Insufficient funds for transfer");
-			await confirmData.editReply({
-				content: "",
-				embeds: [
-					createGenericEmbed({
-						title: "Transfer",
-						description: "You don't have enough funds to complete the transfer",
-						color: config.colors.warning,
-					}),
-				],
-				components: [],
-			});
-			return;
+			return false;
 		}
 
 		// Update balances
@@ -211,13 +194,34 @@ async function handleTransferBalance(
 					},
 				}),
 		]);
+
+		return true;
 	});
 
+	// If the transfer was unsuccessful, send a message and return early
+	if (!success) {
+		logger.info({ cid }, "Insufficient funds for transfer");
+		await confirmData.editReply({
+			content: "",
+			embeds: [
+				createGenericEmbed({
+					title: "Transfer",
+					description: "You don't have enough funds to complete the transfer",
+					color: config.colors.warning,
+				}),
+			],
+			components: [],
+		});
+		return;
+	}
+
+	// Log things
 	logger.info(
 		{ cid, srcId: i.user.id, tgtId: tgtUser.id, xferAmt },
 		"Transfer complete",
 	);
 
+	// Notify the user of the successful transfer
 	await confirmData.editReply({
 		content: "",
 		embeds: [
@@ -230,39 +234,16 @@ async function handleTransferBalance(
 		components: [],
 	});
 
-	// Check if guild has a split audit log channel
-	const auditLogChannelId = cache.settings.get(Settings.SplitAuditLogChannel) as
-		| string
-		| undefined;
-	if (!auditLogChannelId) return;
-
-	// Check if the channel still exists
-	const auditLogChannel = i.guild.channels.cache.get(auditLogChannelId);
-	if (!auditLogChannel) return;
-
-	// Check if bot is still in the guild
-	if (i.guild.members.me === null) return;
-
-	// Check if bot has permissions to send messages in the channel
-	const canSendMessages = auditLogChannel
-		.permissionsFor(i.guild.members.me)
-		.has([
-			PermissionsBitField.Flags.ViewChannel,
-			PermissionsBitField.Flags.SendMessages,
-		]);
-	if (!canSendMessages) return;
-
-	// Send the split details to the audit log channel
-	await (auditLogChannel as TextChannel).send({
-		content: "",
-		embeds: [
-			createGenericEmbed({
-				title: "Transfer",
-				description: `<@${i.user.id}> transferred ${xferAmt} silver to <@${tgtUser.id}>`,
-				color: config.colors.info,
-			}),
-		],
-	});
+	await sendAuditLog(
+		cid,
+		i,
+		cache,
+		createGenericEmbed({
+			title: "Transfer",
+			description: `<@${i.user.id}> transferred ${xferAmt} silver to <@${tgtUser.id}>`,
+			color: config.colors.info,
+		}),
+	);
 }
 
 export async function handleBalanceActions(

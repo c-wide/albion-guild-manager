@@ -6,6 +6,7 @@ import {
 	ButtonStyle,
 	type ChatInputCommandInteraction,
 	ComponentType,
+	type EmbedBuilder,
 	PermissionsBitField,
 	type TextChannel,
 } from "discord.js";
@@ -20,8 +21,53 @@ import {
 	Settings,
 	arrayToCSV,
 	createGenericEmbed,
+	getErrorMessage,
 	isAdminOrManager,
 } from "#src/utils/misc.ts";
+
+export async function sendAuditLog(
+	cid: string,
+	i: ChatInputCommandInteraction<"cached">,
+	cache: GuildDetails,
+	embed: EmbedBuilder,
+) {
+	// Check if guild has a split audit log channel
+	const auditLogChannelId = cache.settings.get(Settings.SplitAuditLogChannel) as
+		| string
+		| undefined;
+	if (!auditLogChannelId) return;
+
+	// Check if the channel still exists
+	const auditLogChannel = i.guild.channels.cache.get(auditLogChannelId);
+	if (!auditLogChannel) return;
+
+	// Check if bot is still in the guild
+	if (i.guild.members.me === null) return;
+
+	// Check if bot has permissions to send messages in the channel
+	const canSendMessages = auditLogChannel
+		.permissionsFor(i.guild.members.me)
+		.has([
+			PermissionsBitField.Flags.ViewChannel,
+			PermissionsBitField.Flags.SendMessages,
+		]);
+	if (!canSendMessages) return;
+
+	// Send the split details to the audit log channel
+	const { error } = await until(() =>
+		(auditLogChannel as TextChannel).send({
+			content: "",
+			embeds: [embed],
+		}),
+	);
+
+	if (error) {
+		logger.warn(
+			{ cid, error: getErrorMessage(error) },
+			"Failed to send message to audit log channel",
+		);
+	}
+}
 
 async function handlePayout(
 	cid: string,
@@ -76,7 +122,7 @@ async function handlePayout(
 	// Defer confirmation update
 	await confirmData.deferUpdate();
 
-	await db.transaction(async (tx) => {
+	const success = await db.transaction(async (tx) => {
 		// Fetch and lock record
 		const [record] = await tx
 			.select({
@@ -93,20 +139,8 @@ async function handlePayout(
 			.for("update");
 
 		// Check if the user has enough balance
-		if (record.balance < xferAmt) {
-			logger.info({ cid }, "Insufficient balance for payout");
-			await confirmData.editReply({
-				content: "",
-				embeds: [
-					createGenericEmbed({
-						title: "Payout",
-						description: "User does not have enough balance",
-						color: config.colors.warning,
-					}),
-				],
-				components: [],
-			});
-			return;
+		if ((record?.balance ?? 0) < xferAmt) {
+			return false;
 		}
 
 		// Update balance
@@ -114,8 +148,28 @@ async function handlePayout(
 			.update(lootSplitBalances)
 			.set({ balance: record.balance - xferAmt })
 			.where(eq(lootSplitBalances.id, record.id));
+
+		return true;
 	});
 
+	// If the user doesn't have enough balance, send a message and return early
+	if (!success) {
+		logger.info({ cid }, "Insufficient balance for payout");
+		await confirmData.editReply({
+			content: "",
+			embeds: [
+				createGenericEmbed({
+					title: "Payout",
+					description: "User does not have enough balance",
+					color: config.colors.warning,
+				}),
+			],
+			components: [],
+		});
+		return;
+	}
+
+	// Log things
 	logger.info({ cid, target: user.id, xferAmt }, "Payout successful");
 
 	// Notify user of payout
@@ -131,39 +185,16 @@ async function handlePayout(
 		components: [],
 	});
 
-	// Check if guild has a split audit log channel
-	const auditLogChannelId = cache.settings.get(Settings.SplitAuditLogChannel) as
-		| string
-		| undefined;
-	if (!auditLogChannelId) return;
-
-	// Check if the channel still exists
-	const auditLogChannel = i.guild.channels.cache.get(auditLogChannelId);
-	if (!auditLogChannel) return;
-
-	// Check if bot is still in the guild
-	if (i.guild.members.me === null) return;
-
-	// Check if bot has permissions to send messages in the channel
-	const canSendMessages = auditLogChannel
-		.permissionsFor(i.guild.members.me)
-		.has([
-			PermissionsBitField.Flags.ViewChannel,
-			PermissionsBitField.Flags.SendMessages,
-		]);
-	if (!canSendMessages) return;
-
-	// Send the split details to the audit log channel
-	await (auditLogChannel as TextChannel).send({
-		content: "",
-		embeds: [
-			createGenericEmbed({
-				title: "Payout",
-				description: `<@${i.user.id}> paid out ${xferAmt} silver to <@${user.id}>`,
-				color: config.colors.info,
-			}),
-		],
-	});
+	await sendAuditLog(
+		cid,
+		i,
+		cache,
+		createGenericEmbed({
+			title: "Payout",
+			description: `<@${i.user.id}> paid out ${xferAmt} silver to <@${user.id}>`,
+			color: config.colors.info,
+		}),
+	);
 }
 
 async function handleViewBalance(
@@ -308,39 +339,16 @@ async function handleSetBalance(
 		components: [],
 	});
 
-	// Check if guild has a split audit log channel
-	const auditLogChannelId = cache.settings.get(Settings.SplitAuditLogChannel) as
-		| string
-		| undefined;
-	if (!auditLogChannelId) return;
-
-	// Check if the channel still exists
-	const auditLogChannel = i.guild.channels.cache.get(auditLogChannelId);
-	if (!auditLogChannel) return;
-
-	// Check if bot is still in the guild
-	if (i.guild.members.me === null) return;
-
-	// Check if bot has permissions to send messages in the channel
-	const canSendMessages = auditLogChannel
-		.permissionsFor(i.guild.members.me)
-		.has([
-			PermissionsBitField.Flags.ViewChannel,
-			PermissionsBitField.Flags.SendMessages,
-		]);
-	if (!canSendMessages) return;
-
-	// Send the split details to the audit log channel
-	await (auditLogChannel as TextChannel).send({
-		content: "",
-		embeds: [
-			createGenericEmbed({
-				title: "Set Balance",
-				description: `<@${i.user.id}> set <@${user.id}>'s balance to ${newTotal} silver`,
-				color: config.colors.info,
-			}),
-		],
-	});
+	await sendAuditLog(
+		cid,
+		i,
+		cache,
+		createGenericEmbed({
+			title: "Set Balance",
+			description: `<@${i.user.id}> set <@${user.id}>'s balance to ${newTotal} silver`,
+			color: config.colors.info,
+		}),
+	);
 }
 
 async function handleSetManagerRole(
@@ -466,6 +474,17 @@ async function handleSetManagerRole(
 		],
 		components: [],
 	});
+
+	await sendAuditLog(
+		cid,
+		i,
+		cache,
+		createGenericEmbed({
+			title: "Set Manager Role",
+			description: `<@${i.user.id}> set the split manager role to <@&${role.id}>`,
+			color: config.colors.info,
+		}),
+	);
 }
 
 async function handleSetAuditLogChannel(
@@ -598,6 +617,17 @@ async function handleSetAuditLogChannel(
 		],
 		components: [],
 	});
+
+	await sendAuditLog(
+		cid,
+		i,
+		cache,
+		createGenericEmbed({
+			title: "Setup Audit Log",
+			description: `<@${i.user.id}> set the audit log channel to <#${channel.id}>`,
+			color: config.colors.info,
+		}),
+	);
 }
 
 async function handleExport(
@@ -660,6 +690,17 @@ async function handleExport(
 		content: "",
 		files: [attachment],
 	});
+
+	await sendAuditLog(
+		cid,
+		i,
+		cache,
+		createGenericEmbed({
+			title: "Split Data Exported",
+			description: `<@${i.user.id}> exported guild split data`,
+			color: config.colors.info,
+		}),
+	);
 }
 
 export async function handleReset(
@@ -732,39 +773,16 @@ export async function handleReset(
 		components: [],
 	});
 
-	// Check if guild has a split audit log channel
-	const auditLogChannelId = cache.settings.get(Settings.SplitAuditLogChannel) as
-		| string
-		| undefined;
-	if (!auditLogChannelId) return;
-
-	// Check if the channel still exists
-	const auditLogChannel = i.guild.channels.cache.get(auditLogChannelId);
-	if (!auditLogChannel) return;
-
-	// Check if bot is still in the guild
-	if (i.guild.members.me === null) return;
-
-	// Check if bot has permissions to send messages in the channel
-	const canSendMessages = auditLogChannel
-		.permissionsFor(i.guild.members.me)
-		.has([
-			PermissionsBitField.Flags.ViewChannel,
-			PermissionsBitField.Flags.SendMessages,
-		]);
-	if (!canSendMessages) return;
-
-	// Send the details to the audit log channel
-	await (auditLogChannel as TextChannel).send({
-		content: "",
-		embeds: [
-			createGenericEmbed({
-				title: "Reset Balances",
-				description: `<@${i.user.id}> reset all balances`,
-				color: config.colors.info,
-			}),
-		],
-	});
+	await sendAuditLog(
+		cid,
+		i,
+		cache,
+		createGenericEmbed({
+			title: "Reset Balances",
+			description: `<@${i.user.id}> reset all balances`,
+			color: config.colors.info,
+		}),
+	);
 }
 
 export async function handleAdminActions(
